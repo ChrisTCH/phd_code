@@ -15,7 +15,7 @@ import numpy as np
 
 # Define the function calc_Sto_1Diff, which will calculate the first partial
 # derivatives of the Stokes Q and U values.
-def calc_Sto_1Diff(Stokes_Q, Stokes_U):
+def calc_Sto_1Diff(Stokes_Q, Stokes_U, pix_sep = 1.0):
     '''
     Description
         This function calculates the partial derivatives of Stokes Q and U 
@@ -34,6 +34,10 @@ def calc_Sto_1Diff(Stokes_Q, Stokes_U):
                    pixel of the image. Must have the same size as the Stokes
                    Q array. Must satisfy the same conventions as the Stokes Q
                    array.
+        pix_sep - A float denoting the separation between two adjacent points
+                  in the provided arrays of Stokes Q and U, in radians. This
+                  is required for the calculated derivatives to have the 
+                  correct units. 
                    
     Output
         The order of the output quantities is dQ_dy, dQ_dx, dU_dy, dU_dx.
@@ -53,11 +57,13 @@ def calc_Sto_1Diff(Stokes_Q, Stokes_U):
     # The first entry is the derivative along the y axis, and the second
     # entry is the derivative along the x axis.
     
-    # Calculate the partial derivatives of Stokes Q along the y and x axes
-    dQ_dy, dQ_dx = np.gradient(Stokes_Q)
+    # Calculate the partial derivatives of Stokes Q along the y and x axes.
+    # pix_sep is used to make sure that the returned matrices have the correct
+    # units.
+    dQ_dy, dQ_dx = np.gradient(Stokes_Q, pix_sep)
     
     # Calculate the partial derivatives of Stokes U along the y and x axes
-    dU_dy, dU_dx = np.gradient(Stokes_U)
+    dU_dy, dU_dx = np.gradient(Stokes_U, pix_sep)
     
     # Return the calculated partial derivatives to the caller.
     return dQ_dy, dQ_dx, dU_dy, dU_dx 

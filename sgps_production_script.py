@@ -25,6 +25,11 @@ from calc_Polar_Grad import calc_Polar_Grad
 from calc_Ang_Grad import calc_Ang_Grad
 from calc_Mod_Div_Grad import calc_Mod_Div_Grad
 from calc_Quad_Curv import calc_Quad_Curv
+from calc_Direc_Div import calc_Direc_Div
+from calc_Direc_Curv import calc_Direc_Curv
+from calc_Rad_Tang_Direc import calc_Rad_Tang_Direc
+from calc_Tang_Direc_Amp import calc_Tang_Direc_Amp
+from calc_Rad_Direc_Amp import calc_Rad_Direc_Amp
 
 from mat2FITS_Image import mat2FITS_Image
 from fits2aplpy import fits2aplpy
@@ -55,6 +60,11 @@ del sgps_hdr[22:30]
 print sgps_hdr
 # Print a blank line to make the script output easier to read
 print ''
+
+# Extract the size of each pixel from the header. This is the length of each 
+# side of the pixel (assumed to be square), in degrees. This is then
+# converted into radians.
+pix_size = np.deg2rad(sgps_hdr['CDELT2'])
 
 # Extract the data from the FITS file, which is held in the primary HDU
 sgps_data = sgps_fits[0].data
@@ -88,13 +98,13 @@ print 'Stokes parameters successfully extracted from data.'
 # Calculate the first order partial derivatives of Stokes Q and U with respect
 # to the y and x axes of the image. This function returns arrays that are the 
 # same size as the arrays in Stokes Q and U.
-dQ_dy, dQ_dx, dU_dy, dU_dx = calc_Sto_1Diff(Sto_Q, Sto_U)
+dQ_dy, dQ_dx, dU_dy, dU_dx = calc_Sto_1Diff(Sto_Q, Sto_U, pix_size)
 
 # Calculate the second order partial derivatives of Stokes Q and U with
 # respect to the y and x axes of the image. This function returns arrays that
 # are the same size as the arrays in Stokes Q and U.
 d2Q_dy2, d2Q_dydx, d2Q_dx2, d2U_dy2, d2U_dydx, d2U_dx2 = \
-calc_Sto_2Diff(dQ_dy, dQ_dx, dU_dy, dU_dx)
+calc_Sto_2Diff(dQ_dy, dQ_dx, dU_dy, dU_dx, pix_size)
 
 # Print a message to the screen to show that the derivatives have been 
 # calculated correctly
@@ -207,40 +217,297 @@ print 'Derivatives of Stokes parameters successfully calculated.\n'
 
 #------------------------- QUADRATURE OF CURVATURES ---------------------------
 
-# Here the quadrature of the curvatures in the x and y directions is 
-# calculated, which depends upon both the first and second order derivatives of
-# the Stokes parameters. The formula is given on page 96 of PhD Logbook 1, and
-# page 23 of PhD Logbook 2. 
+## Here the quadrature of the curvatures in the x and y directions is 
+## calculated, which depends upon both the first and second order derivatives of
+## the Stokes parameters. The formula is given on page 96 of PhD Logbook 1, and
+## page 23 of PhD Logbook 2. 
+#
+## Pass the partial derivative arrays to the function that calculates the
+## quadrature of the curvatures. This function returns an array of the same size
+## as the partial derivative arrays.
+#quad_curv = calc_Quad_Curv(dQ_dy, dQ_dx, dU_dy, dU_dx,\
+#d2Q_dy2, d2Q_dx2, d2U_dy2, d2U_dx2)
+#
+## Print a message to the screen to show that the quadrature of the curvatures
+## has been calculated successfully.
+#print 'Quadrature of the curvatures calculated successfully.'
+#
+## Convert the matrix containing values of the quadrature of curvatures into
+## a FITS file, using the header information of the SGPS data. Also save the 
+## FITS file that is produced by the function.
+#quad_curv_FITS = mat2FITS_Image(quad_curv, sgps_hdr,\
+#data_loc + 'sgps_quad_curv.fits')
+#
+## Print a message to the screen to show that the FITS file was produced and
+## saved successfully.
+#print 'FITS file successfully saved for the quadrature of curvatures.'
+#
+## Create an image of the quadrature of curvatures for the SGPS data using aplpy
+## and the produced FITS file. This image is automatically saved using the given
+## filename.
+#fits2aplpy(quad_curv_FITS, data_loc + 'sgps_quad_curv.png',\
+#colour = 'hot')
+#
+## Print a message to the screen to show that the image of the quadrature of the
+## curvatures has been successfully produced and saved.
+#print 'Image of the quadrature of the curvatures successfully saved.\n'
+
+#--------------------------- DIRECTIONAL DERIVATIVE ---------------------------
+
+## Here the modulus of the directional derivative of the complex polarisation 
+## vector is calculated for various directions determined by the angle to the
+## horizontal theta. This depends upon the first order derivatives of the Stokes
+## parameters. The formula is given on page 60 of PhD Logbook 1, and page 53 of
+## PhD Logbook 2. 
+#
+## Pass the partial derivative arrays to the function that calculates the
+## directional derivative data cube. This function returns a data cube with three
+## axes. Each slice of the data cube is an image of the directional derivative 
+## magnitude for a particular value of theta, and this image is of the same size
+## as the partial derivative arrays.
+#direc_div, theta = calc_Direc_Div(dQ_dy, dQ_dx, dU_dy, dU_dx, num_theta = 40)
+#
+## Print a message to the screen to show that the directional derivative data
+## cube has been calculated successfully.
+#print 'Directional derivative data cube calculated successfully.'
+#
+## The FITS header for the SGPS data needs to be updated for the directional
+## derivative data cube, so that the value of theta for each slice of the data
+## cube is known by any program reading the data cube. Create a copy of the SGPS
+## header, which will be modified for the directional derivative cube.
+#direc_div_hdr = sgps_hdr
+#
+## Insert a new header keyword into the header for the directional derivative,
+## which will record the starting pixel of theta.
+#direc_div_hdr.insert(22, ('CRPIX3', 1.00000000000E+00))
+#
+## Insert a new header keyword into the header for the directional derivative,
+## which will record the difference between successive values of theta.
+#direc_div_hdr.insert(23, ('CDELT3', theta[1] - theta[0]))
+#
+## Insert a new header keyword into the header for the directional derivative,
+## which will record the starting value of theta.
+#direc_div_hdr.insert(24, ('CRVAL3', -1.80000000000E+02))
+#
+## Insert a new header keyword into the header for the directional derivative,
+## which will record that the third axis of the data cube specifies values of
+## theta.
+#direc_div_hdr.insert(25, ('CTYPE3', 'THETA-DEG'))
+#
+## Convert the data cube containing values of the directional derivative into
+## a FITS file, using the header information of the SGPS data. Also save the 
+## FITS file that is produced by the function.
+#direc_div_FITS = mat2FITS_Image(direc_div, direc_div_hdr,\
+#data_loc + 'sgps_direc_div.fits')
+#
+## Print a message to the screen to show that the FITS file was produced and
+## saved successfully.
+#print 'FITS file successfully saved for the directional derivative.'
+
+#--------------------------- DIRECTIONAL CURVATURE ----------------------------
+
+## Here the directional curvature of the complex polarisation vector is
+## calculated for various directions determined by the angle to the horizontal
+## theta. The directional curvature is the curvature of the path in the Q-U
+## plane traced out when moving at an angle theta with respect to the 
+## horizontal axis. This depends upon both the first and second order derivatives
+## of the Stokes parameters. The formula is given on page 22 of PhD Logbook 2.
+#
+## Pass the partial derivative arrays to the function that calculates the
+## directional curvature data cube. This function returns a data cube with three
+## axes. Each slice of the data cube is an image of the directional curvature 
+## for a particular value of theta, and this image is of the same size as the
+## partial derivative arrays.
+#direc_curv, theta = calc_Direc_Curv(dQ_dy, dQ_dx, dU_dy, dU_dx,\
+#d2Q_dy2, d2Q_dx2, d2U_dy2, d2U_dx2, num_theta = 10)
+#
+## Print a message to the screen to show that the directional curvature data
+## cube has been calculated successfully.
+#print 'Directional curvature data cube calculated successfully.'
+#
+## The FITS header for the SGPS data needs to be updated for the directional
+## curvature data cube, so that the value of theta for each slice of the data
+## cube is known by any program reading the data cube. Create a copy of the SGPS
+## header, which will be modified for the directional curvature cube.
+#direc_curv_hdr = sgps_hdr
+#
+## Insert a new header keyword into the header for the directional curvature,
+## which will record the starting pixel of theta.
+#direc_curv_hdr.insert(22, ('CRPIX3', 1.00000000000E+00))
+#
+## Insert a new header keyword into the header for the directional curvature,
+## which will record the difference between successive values of theta.
+#direc_curv_hdr.insert(23, ('CDELT3', theta[1] - theta[0]))
+#
+## Insert a new header keyword into the header for the directional curvature,
+## which will record the starting value of theta.
+#direc_curv_hdr.insert(24, ('CRVAL3', -1.80000000000E+02))
+#
+## Insert a new header keyword into the header for the directional curvature,
+## which will record that the third axis of the data cube specifies values of
+## theta.
+#direc_curv_hdr.insert(25, ('CTYPE3', 'THETA-DEG'))
+#
+## Convert the data cube containing values of the directional curvature into
+## a FITS file, using the header information of the SGPS data. Also save the 
+## FITS file that is produced by the function.
+#direc_curv_FITS = mat2FITS_Image(direc_curv, direc_curv_hdr,\
+#data_loc + 'sgps_direc_curv.fits')
+#
+## Print a message to the screen to show that the FITS file was produced and
+## saved successfully.
+#print 'FITS file successfully saved for the directional curvature.'
+
+#--------- RADIAL AND TANGENTIAL COMPONENTS OF DIRECTIONAL DERIVATIVE ---------
+
+## Here the radial and tangential components of the directional derivative of the
+## complex polarisation vector are calculated for various directions determined
+## by the angle to the horizontal theta. This depends upon the first order
+## derivatives of the Stokes parameters, and the Stokes parameters themselves.
+## The formulae are given on page 57 of PhD Logbook 2.
+#
+## Pass the partial derivative arrays to the function that calculates the
+## radial and tangential component data cubes. This function returns two data
+## cubes, each with three axes. Each slice of a data cube is an image of either
+## the radial or tangential component of the directional derivative for a
+## particular value of theta, and this image is of the same size as the
+## partial derivative arrays.
+#rad_comp, tang_comp, theta = calc_Rad_Tang_Direc(Sto_Q, Sto_U, dQ_dy, dQ_dx,\
+#dU_dy, dU_dx, num_theta = 40)
+#
+## Print a message to the screen to show that the radial and tangential 
+## component data cubes have been calculated successfully.
+#print 'Radial and tangential component data cubes calculated successfully.'
+#
+## The FITS header for the SGPS data needs to be updated for the radial and
+## tangential component data cubes, so that the value of theta for each slice of
+## the data cube is known by any program reading the data cube. Create a copy of
+## the SGPS header, which will be modified for the radial and tangential 
+## component cubes.
+#rad_tang_hdr = sgps_hdr
+#
+## Insert a new header keyword into the header for the radial and tangential
+## components of the directional derivative, which will record the starting
+## pixel of theta.
+#rad_tang_hdr.insert(22, ('CRPIX3', 1.00000000000E+00))
+#
+## Insert a new header keyword into the header for the radial and tangential
+## components of the directional derivative, which will record the difference
+## between successive values of theta.
+#rad_tang_hdr.insert(23, ('CDELT3', theta[1] - theta[0]))
+#
+## Insert a new header keyword into the header for the radial and tangential
+## components of the directional derivative, which will record the starting
+## value of theta.
+#rad_tang_hdr.insert(24, ('CRVAL3', -1.80000000000E+02))
+#
+## Insert a new header keyword into the header for the radial and tangential
+## components of the directional derivative, which will record that the third
+## axis of the data cube specifies values of theta.
+#rad_tang_hdr.insert(25, ('CTYPE3', 'THETA-DEG'))
+#
+## Convert the data cube containing values of the radial component of the
+## directional derivative into a FITS file, using the header information of the
+## SGPS data. Also save the FITS file that is produced by the function.
+#rad_comp_direc_div_FITS = mat2FITS_Image(rad_comp, rad_tang_hdr,\
+#data_loc + 'sgps_rad_comp_direc_div_40.fits')
+#
+## Convert the data cube containing values of the tangential component of the
+## directional derivative into a FITS file, using the header information of the
+## SGPS data. Also save the FITS file that is produced by the function.
+#tang_comp_direc_div_FITS = mat2FITS_Image(tang_comp, rad_tang_hdr,\
+#data_loc + 'sgps_tang_comp_direc_div_40.fits')
+#
+## Print a message to the screen to show that the FITS file was produced and
+## saved successfully.
+#print 'FITS files successfully saved for the radial and tangential components'\
+#+ ' of the directional derivative.'
+
+#--------- AMPLITUDE OF TANGENTIAL COMPONENT OF DIRECTIONAL DERIVATIVE ---------
+
+## Here the amplitude of the tangential component of the directional derivative
+## of the complex polarisation vector is calculated. This depends upon the first
+## order derivatives of the Stokes parameters, and the Stokes parameters
+## themselves. The formula is given on page 57 of PhD Logbook 2.
+#
+## Pass the partial derivative arrays to the function that calculates the
+## amplitude of the tangential component. This function returns an array of the
+## amplitude values (essentially an image), which is the same shape as the 
+## input arrays.
+#tang_comp_amp = calc_Tang_Direc_Amp(Sto_Q, Sto_U, dQ_dy, dQ_dx,\
+#dU_dy, dU_dx, num_theta = 40)
+#
+## Print a message to the screen to show that the amplitude of the tangential 
+## component array has been calculated successfully.
+#print 'Amplitude of the tangential component calculated successfully.'
+#
+## Convert the array containing values of the amplitude of the tangential
+## component of the directional derivative into a FITS file, using the header
+## information of the SGPS data. Also save the FITS file that is produced by the
+## function.
+#tang_comp_direc_div_amp_FITS = mat2FITS_Image(tang_comp_amp, sgps_hdr,\
+#data_loc + 'sgps_tang_comp_direc_div_amp_40.fits')
+#
+## Print a message to the screen to show that the FITS file was produced and
+## saved successfully.
+#print 'FITS files successfully saved for the amplitude of the tangential'\
+#+ ' component of the directional derivative.'
+#
+## Create an image of the amplitude of the tangential component of the 
+## directional derivative for the SGPS data using aplpy and the produced FITS
+## file. This image is automatically saved using the given filename.
+#fits2aplpy(tang_comp_direc_div_amp_FITS, data_loc + 'sgps_tang_comp_amp.png',\
+#colour = 'hot')
+#
+## Print a message to the screen to show that the image of the amplitude of the
+## tangential component of the directional derivative has been successfully
+## produced and saved.
+#print 'Image of the amplitude of the tangential component of the directional'\
+#+ ' derivative successfully saved.\n'
+
+#----------- AMPLITUDE OF RADIAL COMPONENT OF DIRECTIONAL DERIVATIVE ----------
+
+# Here the amplitude of the radial component of the directional derivative
+# of the complex polarisation vector is calculated. This depends upon the first
+# order derivatives of the Stokes parameters, and the Stokes parameters
+# themselves. The formula is given on page 57 of PhD Logbook 2.
 
 # Pass the partial derivative arrays to the function that calculates the
-# quadrature of the curvatures. This function returns an array of the same size
-# as the partial derivative arrays.
-quad_curv = calc_Quad_Curv(dQ_dy, dQ_dx, dU_dy, dU_dx,\
-d2Q_dy2, d2Q_dx2, d2U_dy2, d2U_dx2)
+# amplitude of the radial component. This function returns an array of the
+# amplitude values (essentially an image), which is the same shape as the 
+# input arrays.
+rad_comp_amp = calc_Rad_Direc_Amp(Sto_Q, Sto_U, dQ_dy, dQ_dx,\
+dU_dy, dU_dx, num_theta = 40)
 
-# Print a message to the screen to show that the quadrature of the curvatures
-# has been calculated successfully.
-print 'Quadrature of the curvatures calculated successfully.'
+# Print a message to the screen to show that the amplitude of the radial
+# component array has been calculated successfully.
+print 'Amplitude of the radial component calculated successfully.'
 
-# Convert the matrix containing values of the quadrature of curvatures into
-# a FITS file, using the header information of the SGPS data. Also save the 
-# FITS file that is produced by the function.
-quad_curv_FITS = mat2FITS_Image(quad_curv, sgps_hdr,\
-data_loc + 'sgps_quad_curv.fits')
+# Convert the array containing values of the amplitude of the radial
+# component of the directional derivative into a FITS file, using the header
+# information of the SGPS data. Also save the FITS file that is produced by the
+# function.
+rad_comp_direc_div_amp_FITS = mat2FITS_Image(rad_comp_amp, sgps_hdr,\
+data_loc + 'sgps_rad_comp_direc_div_amp_40.fits')
 
 # Print a message to the screen to show that the FITS file was produced and
 # saved successfully.
-print 'FITS file successfully saved for the quadrature of curvatures.'
+print 'FITS files successfully saved for the amplitude of the radial'\
++ ' component of the directional derivative.'
 
-# Create an image of the quadrature of curvatures for the SGPS data using aplpy
-# and the produced FITS file. This image is automatically saved using the given
-# filename.
-fits2aplpy(quad_curv_FITS, data_loc + 'sgps_quad_curv.png',\
+# Create an image of the amplitude of the radial component of the 
+# directional derivative for the SGPS data using aplpy and the produced FITS
+# file. This image is automatically saved using the given filename.
+fits2aplpy(rad_comp_direc_div_amp_FITS, data_loc + 'sgps_rad_comp_amp.png',\
 colour = 'hot')
 
-# Print a message to the screen to show that the image of the quadrature of the
-# curvatures has been successfully produced and saved.
-print 'Image of the quadrature of the curvatures successfully saved.\n'
+# Print a message to the screen to show that the image of the amplitude of the
+# radial component of the directional derivative has been successfully
+# produced and saved.
+print 'Image of the amplitude of the radial component of the directional'\
++ ' derivative successfully saved.\n'
+
+#------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 
