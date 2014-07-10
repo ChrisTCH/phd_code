@@ -141,10 +141,10 @@ d2Q_dy2 = None, d2Q_dx2 = None, d2U_dy2 = None, d2U_dx2 = None, num_theta = 2):
         sin3theta[i] * (dQ_dy * d2U_dy2 - dU_dy * d2Q_dy2)
         
         # Calculate the directional curvature image for this value of theta
-        direc_curv[i] = numer / denom
+        #direc_curv[i] = numer / denom
         
         # Calculate the numerator only to avoid a noisy data cube
-        #direc_curv[i] = numer
+        direc_curv[i] = numer
         
         # Calculate the radius of curvature
         #direc_curv[i] = denom / numer
