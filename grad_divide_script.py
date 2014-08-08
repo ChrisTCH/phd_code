@@ -22,7 +22,7 @@ from fits2aplpy import fits2aplpy
 data_loc = '/Users/chrisherron/Documents/PhD/SGPS_Data/'
 
 # Open up the FITS file containing my polarisation gradient map
-my_grad = fits.open(data_loc + 'sgps_polar_grad.fits')
+my_grad = fits.open(data_loc + 'sgps_polar_grad_fix_unit.fits')
 
 # Open up Bryan's FITS file containing his polarisation gradient map
 B_grad = fits.open(data_loc + 'sgps_Bryan_grad.fits')
@@ -120,7 +120,7 @@ for i in range(len(my_x_array)):
         
         # Calculate the result of dividing my polarisation gradient data by
         # Bryan's
-        division_mat[j,i] = my_data[j,i] / B_value
+        division_mat[j,i] = my_data[j,i] - B_value
     
     # Print a message to the screen to show when 50 columns have been computed
     if (i+1)%50 == 0:
@@ -135,7 +135,7 @@ for i in range(len(my_x_array)):
 # using the header information of my data. Also save the FITS file that is
 # produced by the function.
 division_FITS = mat2FITS_Image(division_mat, my_hdr,\
-data_loc + 'sgps_divided_polar.fits')
+data_loc + 'sgps_subtract_polar_fix_unit.fits')
 
 # Print a message to the screen to show that the FITS file was produced and
 # saved successfully.
@@ -144,8 +144,8 @@ print 'FITS file successfully saved for the divided polarisation gradients.'
 # Create an image of the divided polarisation gradient values
 # using aplpy and the produced FITS file. This image is automatically
 # saved using the given filename.
-fits2aplpy(division_FITS, data_loc + 'sgps_divided_polar.png', \
-colour = 'hot')
+fits2aplpy(division_FITS, data_loc + 'sgps_subtract_polar_fix_unit.png', \
+colour = 'RdBu')
 
 # Print a message to the screen to show that the image of the divided 
 # polarisation gradient values has been successfully produced and saved.

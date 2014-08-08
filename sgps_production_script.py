@@ -47,6 +47,7 @@ from mat2FITS_Image import mat2FITS_Image
 from fits2aplpy import fits2aplpy
 from hist_plot import hist_plot
 from mat_plot import mat_plot
+from bayes_block import bayes_block
 
 # Create a string object which stores the directory of the SGPS data
 data_loc = '/Users/chrisherron/Documents/PhD/SGPS_Data/'
@@ -75,9 +76,27 @@ print sgps_hdr
 # Print a blank line to make the script output easier to read
 print ''
 
+# Open the SGPS grad P FITS file, which contains the correct major and minor
+# axis values for the beam
+beam_fits = fits.open(data_loc + 'sgps.gradP.fits')
+
+# Obtain the header for the grad P FITS file.
+beam_hdr = beam_fits[0].header
+
+# Delete all of the history cards in the header
+del beam_hdr[41:]
+# Delete all of the information about the third and fourth axes of the array,
+# which will be irrelevant in produced plots
+del beam_hdr[22:30]
+
+# Make the CRPIX1 and CRPIX2 keywords of the beam header the same as for the 
+# SGPS header, so that maps have the correct axes.
+beam_hdr['CRPIX1'] = sgps_hdr['CRPIX1']
+beam_hdr['CRPIX2'] = sgps_hdr['CRPIX2']
+
 # Extract the size of each pixel from the header. This is the length of each 
 # side of the pixel (assumed to be square), in degrees. 
-pix_size_deg = sgps_hdr['CDELT2']
+pix_size_deg = beam_hdr['CDELT2']
 # Convert the pixel size into radians.
 pix_size = np.deg2rad(pix_size_deg)
 
@@ -85,7 +104,7 @@ pix_size = np.deg2rad(pix_size_deg)
 pix_area = np.power(pix_size_deg, 2.0)
 
 # Calculate the area covered by the beam used for the SGPS observations
-beam_area = np.pi * sgps_hdr['BMAJ'] * sgps_hdr['BMIN']
+beam_area = np.pi * beam_hdr['BMAJ'] * beam_hdr['BMIN']
 
 # Calculate the number of pixels in a beam
 num_pix_per_beam = beam_area / pix_area
@@ -143,18 +162,18 @@ print 'Derivatives of Stokes parameters successfully calculated.\n'
 
 #-------------------------- POLARISATION ANGLE --------------------------------
 
-## Use the Stokes parameters to calculate the observed polarisation angle at
-## each pixel of the image.
-#polar_angle = calc_Polar_Angle(Sto_Q, Sto_U)
-#
-## Print a message to the screen to show that the observed polarisation angle
-## has been calculated successfully.
-#print 'Observed polarisation angle calculated successfully.'
-#
+# Use the Stokes parameters to calculate the observed polarisation angle at
+# each pixel of the image.
+polar_angle = calc_Polar_Angle(Sto_Q, Sto_U)
+
+# Print a message to the screen to show that the observed polarisation angle
+# has been calculated successfully.
+print 'Observed polarisation angle calculated successfully.'
+
 ## Convert the matrix of polarisation angle values into a FITS file, using
 ## the header information of the SGPS data. Also save the FITS file that is
 ## produced by the function.
-#polar_angle_FITS = mat2FITS_Image(polar_angle, sgps_hdr,\
+#polar_angle_FITS = mat2FITS_Image(polar_angle, beam_hdr,\
 #data_loc + 'sgps_polar_angle.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -173,35 +192,35 @@ print 'Derivatives of Stokes parameters successfully calculated.\n'
 
 #--------------------- POLARISATION GRADIENT MAGNITUDE ------------------------
 
-# Use the first order partial derivatives to calculate the magnitude of the
-# polarisation gradient of the image.
-polar_grad = calc_Polar_Grad(dQ_dy, dQ_dx, dU_dy, dU_dx)
-
-# Print a message to the screen to show that the magnitude of the polarisation
-# gradient has been calculated successfully.
-print 'Magnitude of the polarisation gradient calculated successfully.'
-
-# Convert the matrix of polarisation gradient values into a FITS file, using
-# the header information of the SGPS data. Also save the FITS file that is
-# produced by the function.
-polar_grad_FITS = mat2FITS_Image(polar_grad, sgps_hdr,\
-data_loc + 'sgps_polar_grad_fix_unit.fits')
-
-# Print a message to the screen to show that the FITS file was produced and
-# saved successfully.
-print 'FITS file successfully saved for the magnitude of the polarisation ' + \
-'gradient.'
-
-# Create an image of the magnitude of the polarisation gradient for the SGPS
-# data using aplpy and the produced FITS file. This image is automatically
-# saved using the given filename.
-fits2aplpy(polar_grad_FITS, data_loc + 'sgps_polar_grad_fix_unit.png', \
-colour = 'hot')
-
-# Print a message to the screen to show that the image of the magnitude of the
-# polarisation gradient has been successfully produced and saved.
-print 'Image of the magnitude of the polarisation gradient successfully saved.'\
-+ '\n'
+## Use the first order partial derivatives to calculate the magnitude of the
+## polarisation gradient of the image.
+#polar_grad = calc_Polar_Grad(dQ_dy, dQ_dx, dU_dy, dU_dx)
+#
+## Print a message to the screen to show that the magnitude of the polarisation
+## gradient has been calculated successfully.
+#print 'Magnitude of the polarisation gradient calculated successfully.'
+#
+## Convert the matrix of polarisation gradient values into a FITS file, using
+## the header information of the SGPS data. Also save the FITS file that is
+## produced by the function.
+#polar_grad_FITS = mat2FITS_Image(polar_grad, beam_hdr,\
+#data_loc + 'sgps_polar_grad_fix_unit.fits')
+#
+## Print a message to the screen to show that the FITS file was produced and
+## saved successfully.
+#print 'FITS file successfully saved for the magnitude of the polarisation ' + \
+#'gradient.'
+#
+## Create an image of the magnitude of the polarisation gradient for the SGPS
+## data using aplpy and the produced FITS file. This image is automatically
+## saved using the given filename.
+#fits2aplpy(polar_grad_FITS, data_loc + 'sgps_polar_grad_fix_unit.png', \
+#colour = 'hot')
+#
+## Print a message to the screen to show that the image of the magnitude of the
+## polarisation gradient has been successfully produced and saved.
+#print 'Image of the magnitude of the polarisation gradient successfully saved.'\
+#+ '\n'
 
 #------------------------ POLARISATION GRADIENT ANGLE -------------------------
 
@@ -217,7 +236,7 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 ## Convert the matrix containing the angles of the polarisation gradient into
 ## a FITS file, using the header information of the SGPS data. Also save the 
 ## FITS file that is produced by the function.
-#ang_grad_FITS = mat2FITS_Image(ang_polar_grad, sgps_hdr,\
+#ang_grad_FITS = mat2FITS_Image(ang_polar_grad, beam_hdr,\
 #data_loc + 'sgps_ang_grad.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -256,7 +275,7 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 ## Convert the matrix containing values of the divergence of the gradient into
 ## a FITS file, using the header information of the SGPS data. Also save the 
 ## FITS file that is produced by the function.
-#mod_div_grad_FITS = mat2FITS_Image(mod_div_grad, sgps_hdr,\
+#mod_div_grad_FITS = mat2FITS_Image(mod_div_grad, beam_hdr,\
 #data_loc + 'sgps_mod_div_grad.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -296,7 +315,7 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 ## Convert the matrix containing values of the quadrature of curvatures into
 ## a FITS file, using the header information of the SGPS data. Also save the 
 ## FITS file that is produced by the function.
-#quad_curv_FITS = mat2FITS_Image(quad_curv, sgps_hdr,\
+#quad_curv_FITS = mat2FITS_Image(quad_curv, beam_hdr,\
 #data_loc + 'sgps_quad_curv.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -561,7 +580,7 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 ## component of the directional derivative into a FITS file, using the header
 ## information of the SGPS data. Also save the FITS file that is produced by the
 ## function.
-#tang_comp_direc_div_amp_FITS = mat2FITS_Image(tang_comp_amp, sgps_hdr,\
+#tang_comp_direc_div_amp_FITS = mat2FITS_Image(tang_comp_amp, beam_hdr,\
 #data_loc + 'sgps_tang_comp_direc_div_amp_40.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -603,7 +622,7 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 ## component of the directional derivative into a FITS file, using the header
 ## information of the SGPS data. Also save the FITS file that is produced by the
 ## function.
-#rad_comp_direc_div_amp_FITS = mat2FITS_Image(rad_comp_amp, sgps_hdr,\
+#rad_comp_direc_div_amp_FITS = mat2FITS_Image(rad_comp_amp, beam_hdr,\
 #data_loc + 'sgps_rad_comp_direc_div_amp_40.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -645,7 +664,7 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 ## polarisation gradient magnitude into a FITS file, using the header
 ## information of the SGPS data. Also save the FITS file that is produced by the
 ## function.
-#grad_polar_grad_FITS = mat2FITS_Image(grad_polar_grad, sgps_hdr,\
+#grad_polar_grad_FITS = mat2FITS_Image(grad_polar_grad, beam_hdr,\
 #data_loc + 'sgps_grad_polar_grad.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -667,28 +686,28 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 
 #------------- ANGLE OF GRADIENT OF POLARISATION GRADIENT MAGNITUDE -----------
 
-## Here the angle of the gradient of the polarisation gradient magnitude with
-## respect to the x axis of the image is calculated. This depends upon the first
-## and second order derivatives of the Stokes parameters. The formula is given 
-## on page 108 of PhD Logbook 1.
-#
-## Pass the partial derivative arrays to the function that calculates the
-## angle of the gradient of the polarisation gradient. This function returns
-## an array of the angle values in degrees (essentially an image), which is the
-## same shape as the input arrays.
-#ang_grad_polar_grad = calc_Ang_Grad_Polar_Grad(dQ_dy, dQ_dx, dU_dy, dU_dx,\
-#d2Q_dy2, d2Q_dydx, d2Q_dx2, d2U_dy2, d2U_dydx, d2U_dx2)
-#
-## Print a message to the screen to show that the angle of the gradient of
-## the polarisation gradient magnitude array has been calculated successfully.
-#print 'Angle of the gradient of the polarisation gradient calculated' +\
-#' successfully.'
+# Here the angle of the gradient of the polarisation gradient magnitude with
+# respect to the x axis of the image is calculated. This depends upon the first
+# and second order derivatives of the Stokes parameters. The formula is given 
+# on page 108 of PhD Logbook 1.
+
+# Pass the partial derivative arrays to the function that calculates the
+# angle of the gradient of the polarisation gradient. This function returns
+# an array of the angle values in degrees (essentially an image), which is the
+# same shape as the input arrays.
+ang_grad_polar_grad = calc_Ang_Grad_Polar_Grad(dQ_dy, dQ_dx, dU_dy, dU_dx,\
+d2Q_dy2, d2Q_dydx, d2Q_dx2, d2U_dy2, d2U_dydx, d2U_dx2)
+
+# Print a message to the screen to show that the angle of the gradient of
+# the polarisation gradient magnitude array has been calculated successfully.
+print 'Angle of the gradient of the polarisation gradient calculated' +\
+' successfully.'
 #
 ## Convert the array containing values of the angle of the gradient of the
 ## polarisation gradient magnitude into a FITS file, using the header
 ## information of the SGPS data. Also save the FITS file that is produced by the
 ## function.
-#ang_grad_polar_grad_FITS = mat2FITS_Image(ang_grad_polar_grad, sgps_hdr,\
+#ang_grad_polar_grad_FITS = mat2FITS_Image(ang_grad_polar_grad, beam_hdr,\
 #data_loc + 'sgps_ang_grad_polar_grad.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -729,9 +748,9 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 #print 'Angle between the polarisation gradient and the gradient of the'\
 #+ ' polarisation gradient magnitude calculated successfully.'
 #
-## Create a histogram of the values for the angle between the polarisation
-## gradient and the gradient of the polarisation gradient magnitude. This 
-## histogram is saved as an image.
+## Create a Bayesian Block histogram of the values for the angle between the 
+## polarisation gradient and the gradient of the polarisation gradient 
+## magnitude. This histogram is saved as an image.
 #hist_plot(ang_betw_DP_DModDP, data_loc + 'sgps_ang_betw_DP_DModDP_hist.png',\
 #'png', x_label = 'Angle Difference [deg]', title ='Angle between DP and DModDP')
 #
@@ -739,7 +758,7 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 ## gradient and the gradient of the polarisation gradient magnitude into a 
 ## FITS file, using the header information of the SGPS data. Also save the FITS
 ## file that is produced by the function.
-#ang_betw_DP_DModDP_FITS = mat2FITS_Image(ang_betw_DP_DModDP, sgps_hdr,\
+#ang_betw_DP_DModDP_FITS = mat2FITS_Image(ang_betw_DP_DModDP, beam_hdr,\
 #data_loc + 'sgps_ang_betw_DP_DModDP.fits')
 #
 ## Print a message to the screen to show that the FITS file was produced and
@@ -799,14 +818,14 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 #ylabel = 'Vertical frequency [cycles/degree]', title =\
 #'Phase Spectrum Polarisation Gradient')
 #
-## Create a histogram of the values for the amplitude spectrum. This histogram is
-## saved as an image.
+## Create a Bayesian Block histogram of the values for the amplitude spectrum.
+## This histogram is saved as an image.
 #hist_plot(grad_amp_spec, data_loc + 'sgps_grad_FFT_amp_hist.png',\
 #'png', x_label = 'Amplitude of Frequency Component', title =\
 #'Histogram Amplitude Spectrum Polarisation Gradient', bins = 30, log_x = True)
 #
-## Create a histogram of the values for the phase spectrum. This histogram is
-## saved as an image.
+## Create a Bayesian Block histogram of the values for the phase spectrum. This
+## histogram is saved as an image.
 #hist_plot(grad_phase_spec, data_loc + 'sgps_grad_FFT_phase_hist.png',\
 #'png', x_label = 'Phase Angle of Frequency Component', title =\
 #'Histogram Phase Spectrum Polarisation Gradient')
@@ -846,14 +865,14 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 #ylabel = 'Vertical frequency [cycles/degree]', title =\
 #'Phase Spectrum Tangential Component')
 #
-## Create a histogram of the values for the amplitude spectrum. This histogram is
-## saved as an image.
+## Create a Bayesian Block histogram of the values for the amplitude spectrum. 
+## This histogram is saved as an image.
 #hist_plot(tang_amp_spec, data_loc + 'sgps_tang_FFT_amp_hist.png',\
 #'png', x_label = 'Amplitude of Frequency Component', title =\
 #'Histogram Amplitude Spectrum Tangential Component', bins = 30, log_x = True)
 #
-## Create a histogram of the values for the phase spectrum. This histogram is
-## saved as an image.
+## Create a Bayesian Block histogram of the values for the phase spectrum. 
+## This histogram is saved as an image.
 #hist_plot(tang_phase_spec, data_loc + 'sgps_tang_FFT_phase_hist.png',\
 #'png', x_label = 'Phase Angle of Frequency Component', title =\
 #'Histogram Phase Spectrum Tangential Component')
@@ -893,17 +912,150 @@ print 'Image of the magnitude of the polarisation gradient successfully saved.'\
 #ylabel = 'Vertical frequency [cycles/degree]', title =\
 #'Phase Spectrum Radial Component')
 #
-## Create a histogram of the values for the amplitude spectrum. This histogram is
-## saved as an image.
+## Create a Bayesian Block histogram of the values for the amplitude spectrum. 
+## This histogram is saved as an image.
 #hist_plot(rad_amp_spec, data_loc + 'sgps_rad_FFT_amp_hist.png',\
 #'png', x_label = 'Amplitude of Frequency Component', title =\
 #'Histogram Amplitude Spectrum Radial Component', bins = 30, log_x = True)
 #
-## Create a histogram of the values for the phase spectrum. This histogram is
-## saved as an image.
+## Create a Bayesian Block histogram of the values for the phase spectrum. 
+## This histogram is saved as an image.
 #hist_plot(rad_phase_spec, data_loc + 'sgps_rad_FFT_phase_hist.png',\
 #'png', x_label = 'Phase Angle of Frequency Component', title =\
 #'Histogram Phase Spectrum Radial Component')
+
+#---- Angle Between Polarisation Gradient and Observed Polarisation Angle -----
+
+## Here the angle between the polarisation gradient and the observed 
+## polarisation angle is calculated. This depends upon the first
+## order derivatives of the Stokes parameters.
+#
+## Calculate the angle between the observed polarisation angle and the 
+## polarisation gradient, by subtracting one from the other, and taking the 
+## absolute value.
+#ang_betw_DP_polar = np.abs(ang_polar_grad - polar_angle)
+#
+## There are some situations where the angle calculated above will be over 90
+## degrees, but I am defining the angle between the polarisation gradient and
+## the observed polarisation angle to be the acute angle between them. Thus, for
+## pixels where the angular separation is above 90 degrees, we need to calculate
+## the acute angle from the obtuse angle.
+#
+## First find the pixel locations where the angular separation is above 90 
+## degrees
+#ang_above_90 = ang_betw_DP_polar > 90.0
+#
+## For the pixels that have angular separation above 90 degrees, replace this 
+## value by the acute angle.
+#ang_betw_DP_polar[ang_above_90] = 180.0 - ang_betw_DP_polar[ang_above_90]
+#
+## Print a message to the screen to show that the angle between the polarisation
+## gradient and the observed polarisation angle has been calculated successfully.
+#print 'Angle between the polarisation gradient and the observed polarisation'\
+#+ ' angle calculated successfully.'
+#
+## Create a Bayesian Block histogram of the values for the angle between the 
+## polarisation gradient and the observed polarisation angle. This histogram is
+## saved as an image.
+#hist_plot(ang_betw_DP_polar, data_loc + 'sgps_ang_betw_DP_polar_hist.png',\
+#'png', x_label = 'Angle Difference [deg]', title ='Angle between DP and Polar'\
+#' Angle')
+#
+## Convert the array containing values of the angle between the polarisation 
+## gradient and the observed polarisation angle into a FITS file, using the 
+## header information of the SGPS data. Also save the FITS file that is produced
+## by the function.
+#ang_betw_DP_polar_FITS = mat2FITS_Image(ang_betw_DP_polar, beam_hdr,\
+#data_loc + 'sgps_ang_betw_DP_polar.fits')
+#
+## Print a message to the screen to show that the FITS file was produced and
+## saved successfully.
+#print 'FITS files successfully saved for the angle between the polarisation'\
+#+ ' gradient and the observed polarisation angle.'
+#
+## Create an image of the angle between the polarisation gradient and the 
+## observed polarisation angle for the SGPS data using aplpy and the produced 
+## FITS file. This image is automatically saved using the given filename.
+#fits2aplpy(ang_betw_DP_polar_FITS, data_loc + 'sgps_ang_betw_DP_polar.png',\
+#colour = 'hot', vmin = 0.0, vmax = 90.0)
+#
+## Print a message to the screen to show that the image of the angle between
+## the polarisation gradient and the observed polarisation angle
+## has been successfully produced and saved.
+#print 'Image of the angle between the polarisation gradient and the observed'\
+#+ ' polarisation angle successfully saved.\n'
+
+#---- Angle Between Gradient of Gradient and Observed Polarisation Angle -----
+
+# Here the angle between the gradient of the polarisation gradient magnitude
+# and the observed polarisation angle is calculated. This depends upon the first
+# and second order derivatives of the Stokes parameters.
+
+# Calculate the angle between the observed polarisation angle and the 
+# gradient of the polarisation gradient magnitude, by subtracting one from the
+# other, and taking the absolute value.
+ang_betw_DDP_polar = np.abs(ang_grad_polar_grad - polar_angle)
+
+# There are some situations where the angle calculated above will be over 90
+# degrees, and other situations where the angle calculated will be over 180
+# degrees, but I am defining the angle between the polarisation gradient and
+# the observed polarisation angle to be the acute angle between them. Thus, for
+# pixels where the angular separation is above 90 degrees, we need to calculate
+# the acute angle from the obtuse angle.
+
+# First find the pixel locations where the angular difference is greater than or
+# equal to 180 degrees.
+ang_above_180 = ang_betw_DDP_polar >= 180.0
+
+# For the pixels that have angular separation above 180 degrees, replace this 
+# value by the acute angle.
+ang_betw_DDP_polar[ang_above_180] = ang_betw_DDP_polar[ang_above_180] - 180.0
+
+# Now find the pixel locations where the angular separation is above 90 
+# degrees
+ang_above_90 = ang_betw_DDP_polar > 90.0
+
+# For the pixels that have angular separation above 90 degrees, replace this 
+# value by the acute angle.
+ang_betw_DDP_polar[ang_above_90] = 180.0 - ang_betw_DDP_polar[ang_above_90]
+
+# Print a message to the screen to show that the angle between the gradient of
+# the polarisation gradient magnitude and the observed polarisation angle has
+# been calculated successfully.
+print 'Angle between the gradient of the polarisation gradient magnitude and'\
++ ' the observed polarisation angle calculated successfully.'
+
+# Create a histogram of the values for the angle between the gradient of the
+# polarisation gradient magnitude and the observed polarisation angle. This
+# histogram is saved as an image.
+hist_plot(ang_betw_DDP_polar, data_loc + 'sgps_ang_betw_DDP_polar_hist.png',\
+'png', x_label = 'Angle Difference [deg]', title ='Angle between DDP and Polar'\
+' Angle')
+
+# Convert the array containing values of the angle between the gradient of the
+# polarisation gradient magnitude and the observed polarisation angle into a
+# FITS file, using the header information of the SGPS data. Also save the FITS
+# file that is produced by the function.
+ang_betw_DDP_polar_FITS = mat2FITS_Image(ang_betw_DDP_polar, beam_hdr,\
+data_loc + 'sgps_ang_betw_DDP_polar.fits')
+
+# Print a message to the screen to show that the FITS file was produced and
+# saved successfully.
+print 'FITS file successfully saved for the angle between the gradient of the'\
++ ' polarisation gradient magnitude and the observed polarisation angle.'
+
+# Create an image of the angle between the gradient of the polarisation gradient
+# magnitude and the observed polarisation angle for the SGPS data using aplpy
+# and the produced FITS file. This image is automatically saved using the given
+# filename.
+fits2aplpy(ang_betw_DDP_polar_FITS, data_loc + 'sgps_ang_betw_DDP_polar.png',\
+colour = 'hot', vmin = 0.0, vmax = 90.0)
+
+# Print a message to the screen to show that the image of the angle between
+# the gradient of the polarisation gradient magnitude and the observed
+# polarisation angle has been successfully produced and saved.
+print 'Image of the angle between the gradient of the polarisation gradient'\
+' magnitude and the observed polarisation angle successfully saved.\n'
 
 #------------------------------------------------------------------------------
 
