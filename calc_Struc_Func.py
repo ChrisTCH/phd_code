@@ -47,13 +47,23 @@ def calc_Struc_Func(data_array, lon_coords, lat_coords, bin_edges,\
                      data. Has the same length as ang_sep_centres. 
     '''
 
-    # Firstly, we need to create an array that will be used in constructing the
-    # structure function. This array will have a row for each angular
-    # separation bin, and a column for every pixel. After the array has
-    # been filled, averaging over the columns will produce the required 
-    # structure function.
-    data_SF_mat = np.zeros((len(ang_sep_centres),len(data_array)))
+    # Firstly, we need to create a dictionary that will be used in constructing the
+    # structure function. This dictionary will have a key for each angular
+    # separation bin, and each key will have an array in which a running total
+    # of the values required to calculate the structure function is stored, along
+    # with a number specifying how many pixels were used in the calculation.
+    # After these numbers have been finalised, dividing the running total by
+    # the number of pixels will produce the required structure function.
+    data_dict = {}
     
+    # Now that the empty dictionary has been created, we need to create a
+    # key for each angular separation bin, and assign each key an array.
+    for sep in ang_sep_centres:
+        # Assign a Numpy array to the dictionary, for this angular
+        # separation. The key used to access each array is the centre of the
+        # angular separation bin.
+        data_dict['{}'.format(sep)] = np.array([0.0,0.0])
+
     # To calculate angular separations, it is necessary to combine the 
     # latitude and longitude arrays into one array, and to convert the units
     # from degrees to radians. Latitude values must be in the first column,
@@ -93,13 +103,32 @@ def calc_Struc_Func(data_array, lon_coords, lat_coords, bin_edges,\
     	# range of values, and is not included in the later averaging.
     	bin_allocation = np.digitize(deg_ang_sep, bin_edges)
 
-    	# Now that we know which bin each pixel belongs to, it is possible to 
-    	# average the quantities needed to calculate structure functions 
-    	# within each bin. 
-    	# Perform a bin average for each angular separation bin, for the
-    	# data, and store the result in the i-th column of the array
-    	data_SF_mat[:,i] = np.array([np.mean(data_diff_array[\
-    		bin_allocation == j]) for j in range(1,len(bin_edges))])
+        # Now that we know which bin each pixel belongs to, it is possible to 
+        # allocate the quantities needed to calculate structure function 
+        # to each bin.
+        # Loop over the values in the angular separation bin allocation array,
+        # so that calculated quantities can be allocated to the correct 
+        # angular separation key in the dictionary
+        for j in range(1,len(bin_edges)):
+            # Calculate the number of pixels in the j-th bin
+            num_pix_j = len(data_diff_array[bin_allocation == j])
+
+            # Add the sum of the relevant quantity for points in the j-th
+            # bin to the running total for the data.
+            data_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
+            np.sum(data_diff_array[bin_allocation == j])
+
+            # Add the number of pixels for the j-th bin to the running total
+            # for the data
+            data_dict['{}'.format(ang_sep_centres[j - 1])][1] += num_pix_j
+
+    	# # Now that we know which bin each pixel belongs to, it is possible to 
+    	# # average the quantities needed to calculate structure functions 
+    	# # within each bin. 
+    	# # Perform a bin average for each angular separation bin, for the
+    	# # data, and store the result in the i-th column of the array
+    	# data_SF_mat[:,i] = np.array([np.mean(data_diff_array[\
+    	# 	bin_allocation == j]) for j in range(1,len(bin_edges))])
 
     	# Print a message to the screen after a certain number of pixels have
     	# been processed, so that it is clear what the program is doing.
@@ -108,17 +137,13 @@ def calc_Struc_Func(data_array, lon_coords, lat_coords, bin_edges,\
     		# message to the screen.
     		print "{} pixels have been processed.".format(i+1)
 
-    # For some pixels, there may be NaN values for certain angular separations,
-    # if there are no other pixels that are separated from the pixel by the
-    # angular separation. These NaN values need to be ignored, so that they
-    # do not affect the averaging process. To achieve this, the data matrix will
-    # be masked, so that NaN values are ignored.
-    data_SF_mat = np.ma.masked_array(data_SF_mat, np.isnan(data_SF_mat))
-
-    # Now that the structure function matrix has been filled with
-    # data for every pixel, average over the columns over the matrix, to
-    # calculate the structure function for the observations and noise.
-    struc_func = np.mean(data_SF_mat, axis = 1)
+    # Now that the structure function dictionary has been filled with
+    # data for every pixel, create an array that contains information on the 
+    # amplitude of the structure function for each angular separation. This is 
+    # done by dividing the running total for the quantity by the total number
+    # of pixel pairs for that bin, for each key in a dictionary.
+    struc_func = np.array([data_dict['{}'.format(sep)][0]\
+     / data_dict['{}'.format(sep)][1] for sep in ang_sep_centres])
 
     # The structure functions has now been successfully calculated, so print
     # a message to the screen stating this.

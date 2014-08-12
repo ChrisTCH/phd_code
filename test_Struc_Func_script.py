@@ -139,7 +139,7 @@ test_struc = calc_Struc_Func(data_array, lon_coords, lat_coords,\
 
 # Create a plot showing the structure function for the data.
 # This plot is automatically saved.
-scat_plot(ang_sep_centres, test_struc, data_loc + 'test_struc_func2.png',\
+scat_plot(ang_sep_centres, test_struc, data_loc + 'test_struc_func_new2.png',\
 	'png', x_label = 'Angular Separation [deg]', y_label =\
 	'Structure Function Value [Jy^2/beam^2]', title =\
 	'Test Structure Function - Gaussian Noise',log_x = True, log_y = True)

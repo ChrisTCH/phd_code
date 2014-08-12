@@ -63,33 +63,6 @@ def scat_plot2(x_data1, y_data1, x_data2, y_data2, filename, format, x_label = \
 		in the specified format.
 	'''
 	
-	# First make a figure object
-	fig = plt.figure()
-	# Create an axis object to go with this figure
-	ax = fig.add_subplot(111)
-	# Make a scatter plot of the x vs y data for dataset 1
-	plt.scatter(x_data1, y_data1, c = col1, marker = marker1, label = label1)
-	# Make a scatter plot of the x vs y data for dataset 2
-	plt.scatter(x_data2, y_data2, c = col2, marker = marker2, label = label2)
-	# Check to see if the x axis of the plot needs to be logarithmic
-	if log_x == True:
-		# In this case, make the x axis of the plot area logarithmic
-		ax.set_xscale('log')
-
-	# Check to see if the y axis of the plot needs to be logarithmic
-	if log_y == True:
-		# In this case, make the y axis of the plot area logarithmic
-		ax.set_yscale('log')
-
-	# Add an x-axis label to the plot
-	plt.xlabel(x_label)
-	# Add a y-axis label to the plot
-	plt.ylabel(y_label)
-	# Add a title to the plot
-	plt.title(title)
-	# Add a legend to the plot
-	plt.legend(loc = loc)
-
 	# Calculate the maximum and minimum y values for dataset 1
 	y1_max = np.amax(y_data1)
 	y1_min = np.amin(y_data1)
@@ -114,10 +87,38 @@ def scat_plot2(x_data1, y_data1, x_data2, y_data2, filename, format, x_label = \
 	abs_x_max = max(x1_max, x2_max)
 	abs_x_min = min(x1_min, x2_min)
 
+	# First make a figure object
+	fig = plt.figure()
+	# Create an axis object to go with this figure
+	ax = fig.add_subplot(111)
+	# Make a scatter plot of the x vs y data for dataset 1
+	plt.scatter(x_data1, y_data1, c = col1, marker = marker1, label = label1)
+	# Make a scatter plot of the x vs y data for dataset 2
+	plt.scatter(x_data2, y_data2, c = col2, marker = marker2, label = label2)
+	
 	# Set the y-axis limits to go between the maximum and minimum
 	ax.set_ylim([0.9 * abs_y_min, 1.1 * abs_y_max])
 	# Set the x-axis limits to go between the maximum and minimum
 	ax.set_xlim([0.9 * abs_x_min, 1.1 * abs_x_max])
+
+	# Check to see if the x axis of the plot needs to be logarithmic
+	if log_x == True:
+		# In this case, make the x axis of the plot area logarithmic
+		ax.set_xscale('log')
+
+	# Check to see if the y axis of the plot needs to be logarithmic
+	if log_y == True:
+		# In this case, make the y axis of the plot area logarithmic
+		ax.set_yscale('log')
+
+	# Add an x-axis label to the plot
+	plt.xlabel(x_label)
+	# Add a y-axis label to the plot
+	plt.ylabel(y_label)
+	# Add a title to the plot
+	plt.title(title)
+	# Add a legend to the plot
+	plt.legend(loc = loc)
 
 	# Save the figure using the title given by the user
 	plt.savefig(filename, format = format)

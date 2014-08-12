@@ -71,6 +71,9 @@ def scat_plot(x_data, y_data, filename, format, x_label = '', \
 	# Set the x-axis limits to go between the maximum and minimum
 	ax.set_xlim([0.9 * np.amin(x_data), 1.1 * np.amax(x_data)])
 
+	# Make sure that all of the axis labels are visible
+	plt.tight_layout()
+
 	# Save the figure using the title given by the user
 	plt.savefig(filename, format = format)
 	

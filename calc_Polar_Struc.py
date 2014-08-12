@@ -85,15 +85,29 @@ def calc_Polar_Struc(obs_Sto_Q, obs_Sto_U, noise_Sto_Q, noise_Sto_U,\
     # Calculate the polarised intensity noise for the selected pixels 
     noise_P_inten = np.sqrt(np.power(noise_Sto_Q,2.0) + np.power(noise_Sto_U,2.0) )
     
-    # Firstly, we need to create arrays that will be used in constructing the
-    # structure functions. These arrays will have a row for each angular
-    # separation bin, and a column for every pixel. After these arrays have
-    # been filled, averaging over the columns will produce the required 
-    # structure functions.
-    obs_compl_P_mat = np.zeros((len(ang_sep_centres),len(obs_compl_P)))
-    obs_P_inten_mat = np.zeros((len(ang_sep_centres),len(obs_compl_P)))
-    noise_compl_P_mat =np.zeros((len(ang_sep_centres),len(obs_compl_P)))
-    noise_P_inten_mat =np.zeros((len(ang_sep_centres),len(obs_compl_P)))
+    # Firstly, we need to create dictionaries that will be used in constructing the
+    # structure functions. These dictionaries will have a key for each angular
+    # separation bin, and each key will have an array in which a running total
+    # of the values required to calculate the structure function is stored, along
+    # with a number specifying how many pixels were used in the calculation.
+    # After these numbers have been finalised, dividing the running total by
+    # the number of pixels will produce the required structure functions.
+    obs_compl_P_dict = {}
+    obs_P_inten_dict = {}
+    noise_compl_P_dict = {}
+    noise_P_inten_dict = {}
+
+    # Now that the empty dictionaries have been created, we need to create a
+    # key for each angular separation bin, and assign each key an array.
+    # This needs to be performed on all dictionaries.
+    for sep in ang_sep_centres:
+        # Assign a Numpy array to each dictionary, for this angular
+        # separation. The key used to access each array is the centre of the
+        # angular separation bin.
+        obs_compl_P_dict['{}'.format(sep)] = np.array([0.0,0.0])
+        obs_P_inten_dict['{}'.format(sep)] = np.array([0.0,0.0])
+        noise_compl_P_dict['{}'.format(sep)] = np.array([0.0,0.0])
+        noise_P_inten_dict['{}'.format(sep)] = np.array([0.0,0.0])
 
     # To calculate angular separations, it is necessary to combine the 
     # latitude and longitude arrays into one array, and to convert the units
@@ -151,31 +165,102 @@ def calc_Polar_Struc(obs_Sto_Q, obs_Sto_U, noise_Sto_Q, noise_Sto_U,\
     	bin_allocation = np.digitize(deg_ang_sep, bin_edges)
 
     	# Now that we know which bin each pixel belongs to, it is possible to 
-    	# average the quantities needed to calculate structure functions 
-    	# within each bin. 
-    	# Perform a bin average for each angular separation bin, for the
-    	# observed complex polarisation, and store the result in the i-th
-    	# column of the corresponding array
-    	obs_compl_P_mat[:,i] = np.array([np.mean(obs_compl_P_diff[\
-    		bin_allocation == j]) for j in range(1,len(bin_edges))])
+    	# allocate the quantities needed to calculate structure functions 
+    	# to each bin.
+        # Loop over the values in the angular separation bin allocation array,
+        # so that calculated quantities can be allocated to the correct 
+        # angular separation key in each dictionary
+        for j in range(1,len(bin_edges)):
+            # Calculate the number of pixels in the j-th bin
+            num_pix_j = len(obs_compl_P_diff[bin_allocation == j])
 
-    	# Perform a bin average for each angular separation bin, for the 
-    	# noise complex polarisation, and store the result in the i-th
-    	# column of the corresponding array
-    	noise_compl_P_mat[:,1] = np.array([np.mean(noise_compl_P_diff[\
-    		bin_allocation == j]) for j in range(1,len(bin_edges))])
+            # Add the sum of the relevant quantity for points in the j-th
+            # bin to the running total for the observed complex polarisation.
+            obs_compl_P_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
+            np.sum(obs_compl_P_diff[bin_allocation == j])
 
-    	# Perform a bin average for each angular separation bin, for the
-    	# observed polarised intensity, and store the result in the i-th
-    	# column of the corresponding array
-    	obs_P_inten_mat[:,i] = np.array([np.mean(obs_P_inten_diff[\
-    		bin_allocation == j]) for j in range(1,len(bin_edges))])
+            # Add the number of pixels for the j-th bin to the running total
+            # for the observed complex polarisation
+            obs_compl_P_dict['{}'.format(ang_sep_centres[j - 1])][1] += num_pix_j
 
-    	# Perform a bin average for each angular separation bin, for the
-    	# noise polarised intensity, and store the result in the i-th
-    	# column of the corresponding array
-    	noise_P_inten_mat[:,1] = np.array([np.mean(noise_P_inten_diff[\
-    		bin_allocation == j]) for j in range(1,len(bin_edges))])
+            # Add the sum of the relevant quantity for points in the j-th
+            # bin to the running total for the noise complex polarisation.
+            noise_compl_P_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
+            np.sum(noise_compl_P_diff[bin_allocation == j])
+
+            # Add the number of pixels for the j-th bin to the running total
+            # for the noise complex polarisation
+            noise_compl_P_dict['{}'.format(ang_sep_centres[j - 1])][1] += num_pix_j
+
+            # Add the sum of the relevant quantity for points in the j-th
+            # bin to the running total for the observed polarisation intensity.
+            obs_P_inten_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
+            np.sum(obs_P_inten_diff[bin_allocation == j])
+
+            # Add the number of pixels for the j-th bin to the running total
+            # for the observed polarisation intensity
+            obs_P_inten_dict['{}'.format(ang_sep_centres[j - 1])][1] += num_pix_j
+
+            # Add the sum of the relevant quantity for points in the j-th
+            # bin to the running total for the noise polarisation intensity.
+            noise_P_inten_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
+            np.sum(noise_P_inten_diff[bin_allocation == j])
+
+            # Add the number of pixels for the j-th bin to the running total
+            # for the noise polarisation intensity
+            noise_P_inten_dict['{}'.format(ang_sep_centres[j - 1])][1] += num_pix_j
+
+            # # Append the calculated quantities for the observed complex 
+            # # polarisation and for the j-th bin to the corresponding key
+            # # in the corresponding dictionary
+            # obs_compl_P_dict['{}'.format(ang_sep_centres[j - 1])] = \
+            # np.append(obs_compl_P_dict['{}'.format(ang_sep_centres[j - 1])],\
+            #     obs_compl_P_diff[bin_allocation == j])
+
+            # # Append the calculated quantities for the noise complex 
+            # # polarisation and for the j-th bin to the corresponding key
+            # # in the corresponding dictionary
+            # noise_compl_P_dict['{}'.format(ang_sep_centres[j - 1])] = \
+            # np.append(noise_compl_P_dict['{}'.format(ang_sep_centres[j - 1])],\
+            #     noise_compl_P_diff[bin_allocation == j])
+
+            # # Append the calculated quantities for the observed polarised 
+            # # intensity and for the j-th bin to the corresponding key
+            # # in the corresponding dictionary
+            # obs_P_inten_dict['{}'.format(ang_sep_centres[j - 1])] = \
+            # np.append(obs_P_inten_dict['{}'.format(ang_sep_centres[j - 1])],\
+            #     obs_P_inten_diff[bin_allocation == j])
+
+            # # Append the calculated quantites for the noise polarised 
+            # # intensity and for the j-th bin to the corresponding key
+            # # in the corresponding dictionary
+            # noise_P_inten_dict['{}'.format(ang_sep_centres[j - 1])] = \
+            # np.append(noise_P_inten_dict['{}'.format(ang_sep_centres[j - 1])],\
+            #     noise_P_inten_diff[bin_allocation == j])
+
+    	# # Perform a bin average for each angular separation bin, for the
+    	# # observed complex polarisation, and store the result in the i-th
+    	# # column of the corresponding array
+    	# obs_compl_P_mat[:,i] = np.array([np.mean(obs_compl_P_diff[\
+    	# 	bin_allocation == j]) for j in range(1,len(bin_edges))])
+
+    	# # Perform a bin average for each angular separation bin, for the 
+    	# # noise complex polarisation, and store the result in the i-th
+    	# # column of the corresponding array
+    	# noise_compl_P_mat[:,i] = np.array([np.mean(noise_compl_P_diff[\
+    	# 	bin_allocation == j]) for j in range(1,len(bin_edges))])
+
+    	# # Perform a bin average for each angular separation bin, for the
+    	# # observed polarised intensity, and store the result in the i-th
+    	# # column of the corresponding array
+    	# obs_P_inten_mat[:,i] = np.array([np.mean(obs_P_inten_diff[\
+    	# 	bin_allocation == j]) for j in range(1,len(bin_edges))])
+
+    	# # Perform a bin average for each angular separation bin, for the
+    	# # noise polarised intensity, and store the result in the i-th
+    	# # column of the corresponding array
+    	# noise_P_inten_mat[:,i] = np.array([np.mean(noise_P_inten_diff[\
+    	# 	bin_allocation == j]) for j in range(1,len(bin_edges))])
 
     	# Print a message to the screen after a certain number of pixels have
     	# been processed, so that it is clear what the program is doing.
@@ -184,25 +269,32 @@ def calc_Polar_Struc(obs_Sto_Q, obs_Sto_U, noise_Sto_Q, noise_Sto_U,\
     		# message to the screen.
     		print "{} pixels have been processed.".format(i+1)
 
-    # For some pixels, there may be NaN values for certain angular separations,
-    # if there are no other pixels that are separated from the pixel by the
-    # angular separation. These NaN values need to be ignored, so that they
-    # do not affect the averaging process. To achieve this, all matrices will
-    # be masked, so that NaN values are ignored.
-    obs_compl_P_mat = np.ma.masked_array(obs_compl_P_mat, np.isnan(obs_compl_P_mat))
-    obs_P_inten_mat = np.ma.masked_array(obs_P_inten_mat, np.isnan(obs_P_inten_mat))
-    noise_compl_P_mat = np.ma.masked_array(noise_compl_P_mat,\
-    np.isnan(noise_compl_P_mat))
-    noise_P_inten_mat = np.ma.masked_array(noise_P_inten_mat,\
-    np.isnan(noise_P_inten_mat))
+    # # For some pixels, there may be NaN values for certain angular separations,
+    # # if there are no other pixels that are separated from the pixel by the
+    # # angular separation. These NaN values need to be ignored, so that they
+    # # do not affect the averaging process. To achieve this, all matrices will
+    # # be masked, so that NaN values are ignored.
+    # obs_compl_P_mat = np.ma.masked_array(obs_compl_P_mat, np.isnan(obs_compl_P_mat))
+    # obs_P_inten_mat = np.ma.masked_array(obs_P_inten_mat, np.isnan(obs_P_inten_mat))
+    # noise_compl_P_mat = np.ma.masked_array(noise_compl_P_mat,\
+    # np.isnan(noise_compl_P_mat))
+    # noise_P_inten_mat = np.ma.masked_array(noise_P_inten_mat,\
+    # np.isnan(noise_P_inten_mat))
 
-    # Now that all of the structure function matrices have been filled with
-    # data for every pixel, average over the columns over the matrices, to
-    # calculate the structure functions for the observations and noise.
-    obs_compl_P_struc = np.mean(obs_compl_P_mat, axis = 1)
-    obs_P_inten_struc = np.mean(obs_P_inten_mat, axis = 1)
-    noise_compl_P_struc = np.mean(noise_compl_P_mat, axis = 1)
-    noise_P_inten_struc = np.mean(noise_P_inten_mat, axis = 1)
+    # Now that all of the structure function dictionaries have been filled with
+    # data for every pixel, create arrays that contain information on the 
+    # amplitude of the structure function for each angular separation, to
+    # calculate the structure functions for the observations and noise. This is 
+    # done by dividing the running total for the quantity by the total number
+    # of pixel pairs for that bin, for each key in a dictionary.
+    obs_compl_P_struc = np.array([obs_compl_P_dict['{}'.format(sep)][0]\
+     / obs_compl_P_dict['{}'.format(sep)][1] for sep in ang_sep_centres])
+    obs_P_inten_struc = np.array([obs_P_inten_dict['{}'.format(sep)][0]\
+     / obs_P_inten_dict['{}'.format(sep)][1] for sep in ang_sep_centres])
+    noise_compl_P_struc = np.array([noise_compl_P_dict['{}'.format(sep)][0]\
+     / noise_compl_P_dict['{}'.format(sep)][1] for sep in ang_sep_centres])
+    noise_P_inten_struc = np.array([noise_P_inten_dict['{}'.format(sep)][0]\
+     / noise_P_inten_dict['{}'.format(sep)][1] for sep in ang_sep_centres])
     
     # To calculate the true complex polarisation structure function, we simply
     # need to subtract the corresponding noise structure function from the 

@@ -197,7 +197,7 @@ true_compl_P_struc, true_P_inten_struc = calc_Polar_Struc(obs_Sto_Q, obs_Sto_U,\
 # polarisation vector and the polarised intensity. This plot is automatically
 # saved.
 scat_plot2(ang_sep_centres, obs_compl_P_struc, ang_sep_centres,\
-	obs_P_inten_struc, data_loc + 'sgps_obs_struc_func9.png', 'png', x_label = \
+	obs_P_inten_struc, data_loc + 'sgps_obs_struc_func_new2.png', 'png', x_label = \
 	'Angular Separation [deg]', y_label = 'Structure Function Value'\
 	+ ' [Jy^2/beam^2]', title = 'Observed Structure Functions', col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
@@ -207,7 +207,7 @@ scat_plot2(ang_sep_centres, obs_compl_P_struc, ang_sep_centres,\
 # polarisation vector and the polarised intensity. This plot is automatically 
 # saved.
 scat_plot2(ang_sep_centres, noise_compl_P_struc, ang_sep_centres,\
-	noise_P_inten_struc, data_loc + 'sgps_noise_struc_func9.png', 'png',x_label=\
+	noise_P_inten_struc, data_loc + 'sgps_noise_struc_func_new2.png', 'png',x_label=\
 	'Angular Separation [deg]', y_label = 'Structure Function Value'\
 	+ ' [Jy^2/beam^2]', title = 'Noise Structure Functions', col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
@@ -217,7 +217,7 @@ scat_plot2(ang_sep_centres, noise_compl_P_struc, ang_sep_centres,\
 # polarisation vector and the polarised intensity. This plot is automatically
 # saved.
 scat_plot2(ang_sep_centres, true_compl_P_struc, ang_sep_centres,\
-	true_P_inten_struc, data_loc + 'sgps_true_struc_func9.png', 'png',x_label=\
+	true_P_inten_struc, data_loc + 'sgps_true_struc_func_new2.png', 'png',x_label=\
 	'Angular Separation [deg]', y_label = 'Structure Function Value'\
 	+ ' [Jy^2/beam^2]', title = 'True Structure Functions', col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\

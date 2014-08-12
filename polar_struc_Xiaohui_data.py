@@ -93,7 +93,7 @@ num_y = spass_hdr['NAXIS2']
 
 # Set a variable that controls how many pixels will be randomly chosen in the
 # spass image in order to construct the structure function
-num_pix = 30000
+num_pix = 40000
 
 # Randomly generate the x-axis pixel locations for the required number of
 # pixels.
@@ -179,12 +179,12 @@ max_ang_sep = 10 * num_bin * pix_sep
 # Construct an array that specifies the bin edges for angular separation
 # Note that the bin edges need to be logarithmically separated. The minimum
 # angular separation used is the size of an individual pixel.
-bin_edges = np.logspace(np.log10(2.0 * pix_sep), np.log10(max_ang_sep), num_bin + 1.0)
+bin_edges = np.logspace(np.log10(pix_sep), np.log10(1.3 * max_ang_sep), num_bin + 1.0)
 
 # Now create an array to specify what the characteristic value of the angular
 # separation is for each bin of interest.
 # First calculate the exponent values used to produce the bin edges
-log_edges = np.linspace(np.log10(2.0 * pix_sep), np.log10(max_ang_sep), num_bin + 1.0)
+log_edges = np.linspace(np.log10(pix_sep), np.log10(1.3 * max_ang_sep), num_bin + 1.0)
 
 # Calculate the values half-way between the bin edges on a log scale
 log_centres = log_edges[:-1] + np.ediff1d(log_edges)/2.0
@@ -211,35 +211,79 @@ true_compl_P_struc, true_P_inten_struc = calc_Polar_Struc(obs_Sto_Q, obs_Sto_U,\
 
 #-------------------------- PLOT STRUCTURE FUNCTIONS ---------------------------
 
+# Create an array of the centres of the angular separation bins for Xiaohui's
+# data
+Xiao_sep_centre = np.array([0.0509694666, 0.0634814799, 0.0742559731, 0.0868752003,\
+	0.101612106, 0.118684702, 0.138772532, 0.162279263, 0.189662904, 0.221812427,\
+	0.259352148, 0.30336377, 0.354609728, 0.414519817, 0.48473534, 0.566673517,\
+	0.662482619, 0.774623811, 0.905546486, 1.05879116, 1.23788464, 1.44734359,\
+	1.69196451, 1.97814715, 2.31270528, 2.7037313, 3.16044497, 3.6946733,\
+	4.31970072, 5.05465794, 5.90662146, 6.89912844, 8.05670452, 9.40233803,\
+	10.9931259, 12.8478184, 15.0008411, 17.4840393, 20.2194672, 22.9411488])
+
+# Create an array of the structure function values for polarised intensity
+# in Xiaohui's data
+Xiao_P_inten_struc = np.array([50.0531883, 69.0552216, 87.6915207, 100.143974,\
+	130.076874, 164.537781, 204.685684, 245.515167, 297.188019, 337.048004,\
+	383.43811, 436.84787, 485.785461, 523.864136, 565.291016, 604.150146,\
+	644.604858, 679.76239, 717.844055, 758.189819, 787.752686, 824.260681,\
+	850.419678, 890.345764, 938.202698, 996.339111, 1034.32324, 1054.50586,\
+	1036.23254, 1059.30005, 1135.37634, 1166.05127, 1224.03967, 1279.48291,\
+	1308.26099, 1270.27515, 1274.49341, 1111.00708, 956.980957, 1401.15259])
+
+# Create an array of the structure function values for complex polarisation
+# in Xiaohui's data
+Xiao_compl_P_struc = np.array([125.300171, 199.189987, 241.001129, 279.267853,\
+	371.725677, 491.87793, 629.569092, 769.859192, 937.650452, 1104.00574,\
+	1298.42188, 1493.79932, 1685.49878, 1858.52112, 1987.25549, 2122.81128,\
+	2247.81616, 2363.0835, 2434.49316, 2508.55518, 2559.38452, 2592.87744,\
+	2618.47168, 2625.9021, 2632.91895, 2733.70557, 2810.39917, 2825.35547,\
+	2754.96045, 2814.19189, 2984.6377, 3152.83813, 3430.25537, 3660.80957,\
+	3571.3916, 3160.2793, 3019.51978, 2955.30054, 2786.69067, 3375.07056])
+
 # Multiply the angular separation centres array by 60, to convert it from 
 # degrees to arcminutes.
 ang_sep_centres = 60.0 * ang_sep_centres
+# Do the same for Xiaohui's array of angular separation bins
+Xiao_sep_centre = 60.0 * Xiao_sep_centre
 
 # Create a plot showing the structure functions for the observed complex
-# polarisation vector and the polarised intensity. This plot is automatically
-# saved.
-scat_plot2(ang_sep_centres, obs_compl_P_struc, ang_sep_centres,\
-	obs_P_inten_struc, data_loc + 'spass_obs_struc_func3.png', 'png', x_label = \
-	'Angular Separation [arcmin]', y_label = 'Structure Function Value'\
-	+ ' [mK^2]', title = 'Observed Structure Functions - Xiaohui', col1 = 'b',\
-	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
+# polarisation vector, for my method of calculating the structure function and
+# for Xiaohui's data. This plot is automatically saved.
+scat_plot2(ang_sep_centres, obs_compl_P_struc, Xiao_sep_centre,\
+	Xiao_compl_P_struc, data_loc + 'spass_compl_P_struc_func_compare2.png',\
+	'png', x_label = 'Angular Separation [arcmin]', y_label =\
+	'Structure Function Value'+ ' [mK^2]', title =\
+	'Observed Complex Polarisation Structure Functions - S-PASS', col1 = 'b',\
+	col2 = 'r', label1 = 'My Method', label2 ='Xiaohui Data',\
+	marker1 = 'o', marker2 = 'x', log_x = True, log_y = True, loc = 4)
+
+# Create a plot showing the structure functions for the observed polarisation
+# intensity, for my method of calculating the structure function and
+# for Xiaohui's data. This plot is automatically saved.
+scat_plot2(ang_sep_centres, obs_P_inten_struc, Xiao_sep_centre,\
+	Xiao_P_inten_struc, data_loc + 'spass_P_inten_struc_func_compare2.png',\
+	'png', x_label = 'Angular Separation [arcmin]', y_label =\
+	'Structure Function Value'+ ' [mK^2]', title =\
+	'Observed Polarisation Intensity Structure Functions - S-PASS', col1 = 'b',\
+	col2 = 'r', label1 = 'My Method', label2 ='Xiaohui Data',\
 	marker1 = 'o', marker2 = 'x', log_x = True, log_y = True, loc = 4)
 
 # Create a plot showing the structure functions for the noise complex
 # polarisation vector and the polarised intensity. This plot is automatically 
 # saved.
 scat_plot2(ang_sep_centres, noise_compl_P_struc, ang_sep_centres,\
-	noise_P_inten_struc, data_loc + 'spass_noise_struc_func3.png', 'png',x_label=\
+	noise_P_inten_struc, data_loc + 'spass_noise_struc_func5.png', 'png',x_label=\
 	'Angular Separation [arcmin]', y_label = 'Structure Function Value'\
 	+ ' [mK^2]', title = 'Noise Structure Functions - Xiaohui', col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
-	marker1 = 'o', marker2 = 'x', log_x = True, log_y = False, loc = 1)
+	marker1 = 'o', marker2 = 'x', log_x = True, log_y = True, loc = 1)
 
 # Create a plot showing the structure functions for the true complex 
 # polarisation vector and the polarised intensity. This plot is automatically
 # saved.
 scat_plot2(ang_sep_centres, true_compl_P_struc, ang_sep_centres,\
-	true_P_inten_struc, data_loc + 'spass_true_struc_func3.png', 'png',x_label=\
+	true_P_inten_struc, data_loc + 'spass_true_struc_func5.png', 'png',x_label=\
 	'Angular Separation [arcmin]', y_label = 'Structure Function Value'\
 	+ ' [mK^2]', title = 'True Structure Functions - Xiaohui', col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
