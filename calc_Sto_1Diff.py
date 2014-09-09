@@ -35,7 +35,7 @@ def calc_Sto_1Diff(Stokes_Q, Stokes_U, pix_sep = 1.0):
                    Q array. Must satisfy the same conventions as the Stokes Q
                    array.
         pix_sep - A float denoting the separation between two adjacent points
-                  in the provided arrays of Stokes Q and U, in radians. This
+                  in the provided arrays of Stokes Q and U. This
                   is required for the calculated derivatives to have the 
                   correct units. 
                    

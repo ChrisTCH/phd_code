@@ -17,7 +17,7 @@ import aplpy
 # Define the function fits2aplpy, which will produce an image from the given
 # FITS file object
 def fits2aplpy(fits_file, filename, dimensions = [0,1], slices = [], \
-colour = 'gray', vmin = None, vmax = None):
+colour = 'gray', vmin = None, vmax = None, convention = None):
     '''
     Description
         This function produces an image of a FITS file image object in aplpy.
@@ -58,6 +58,9 @@ colour = 'gray', vmin = None, vmax = None):
                bar. Any values above vmax are mapped to the same colour as a 
                value equal to vmax. If vmax == None, then vmax is calculated
                automatically by aplpy.
+        convention - A string to be used if a FITS header can be interpreted
+                     in multiple ways. For a Cartesian CAR projection, this
+                     may be 'wells' or 'calabretta'.
                    
     Output
         fig - This function returns the aplpy FITSFigure instance which is 
@@ -65,8 +68,15 @@ colour = 'gray', vmin = None, vmax = None):
               can be updated further via this returned FITSFigure instance.
     '''
     
-    # Create a display frame for the image
-    fig = aplpy.FITSFigure(fits_file, dimensions = dimensions, slices = slices)
+    # If no convention is required to resolve any ambiguity in the FITS
+    # header, then create the disply frame as usual
+    if convention == None:
+        # Create a display frame for the image
+        fig = aplpy.FITSFigure(fits_file, dimensions = dimensions, slices = slices)
+    else:
+        # In this case, create a display frame using the given convention
+        fig = aplpy.FITSFigure(fits_file, dimensions = dimensions, slices = slices,\
+         convention = convention)
     
     # Check to see if a grayscale or colour scale image is being made
     if colour == 'gray':

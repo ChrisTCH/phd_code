@@ -68,7 +68,7 @@ print 'The shape of the data array is: {}.'.format(sgps_data.shape)
 temp_arr = sgps_data[0]
 
 # NOTE: To see effect of adding to Stokes Q and U, just add on constant here
-add_value = 0.1
+add_value = 0.0
 
 # The elements in the second dimension of the sgps data array are Stokes I,
 # Stokes Q, polarised intensity, and Stokes U, in that order.
@@ -116,13 +116,18 @@ sgps_wcs = wcs.WCS(sgps_hdr, naxis=[1,2])
 # SGPS image in order to construct the structure function
 num_pix = 30000
 
+# Set the minimum and maximum x axis pixel values to use in the calculation
+xmin, xmax = 760, 1140
+# Set the minimum and maximum y axis pixel values to use in the calculation
+ymin, ymax = 275, 550
+
 # Randomly generate the x-axis pixel locations for the required number of
 # pixels. Arguments are min, max, number to generate. Use (0,num_x,num_pix)
-x_coords = np.random.randint(135, 704, num_pix)
+x_coords = np.random.randint(xmin, xmax, num_pix)
 
 # Randomly generate the y-axis pixel locations for the required number of 
 # pixels
-y_coords = np.random.randint(170, 524, num_pix)
+y_coords = np.random.randint(ymin, ymax, num_pix)
 
 # Find the longitude and latitude values for every randomly chosen pixel in
 # the SGPS data, in degrees.
@@ -201,10 +206,10 @@ true_compl_P_struc, true_P_inten_struc = calc_Polar_Struc(obs_Sto_Q, obs_Sto_U,\
 # polarisation vector and the polarised intensity. This plot is automatically
 # saved.
 scat_plot2(ang_sep_centres, obs_compl_P_struc, ang_sep_centres,\
-	obs_P_inten_struc, data_loc + 'sgps_obs_struc_func_{}.png'.format(add_value),\
+	obs_P_inten_struc, data_loc + 'sgps_obs_SF_{}_{}.png'.format(xmax,ymax),\
 	'png', x_label = 'Angular Separation [deg]', y_label = 'Structure Function Value'\
 	+ ' [Jy^2/beam^2]', title = \
-	'Observed Structure Functions Added Stokes {}'.format(add_value), col1 = 'b',\
+	'Observed Structure Functions X: {}-{} Y: {}-{}'.format(xmin,xmax,ymin,ymax), col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
 	marker1 = 'o', marker2 = 'x', log_x = True, log_y = True, loc = 4)
 
@@ -212,10 +217,10 @@ scat_plot2(ang_sep_centres, obs_compl_P_struc, ang_sep_centres,\
 # polarisation vector and the polarised intensity. This plot is automatically 
 # saved.
 scat_plot2(ang_sep_centres, noise_compl_P_struc, ang_sep_centres,\
-	noise_P_inten_struc, data_loc + 'sgps_noise_struc_func_{}.png'.format(add_value),\
+	noise_P_inten_struc, data_loc + 'sgps_noise_SF_{}_{}.png'.format(xmax,ymax),\
 	'png',x_label= 'Angular Separation [deg]', y_label = 'Structure Function Value'\
 	+ ' [Jy^2/beam^2]', title = \
-	'Noise Structure Functions Added Stokes {}'.format(add_value), col1 = 'b',\
+	'Noise Structure Functions X: {}-{} Y: {}-{}'.format(xmin,xmax,ymin,ymax), col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
 	marker1 = 'o', marker2 = 'x', log_x = True, log_y = False, loc = 1)
 
@@ -223,10 +228,10 @@ scat_plot2(ang_sep_centres, noise_compl_P_struc, ang_sep_centres,\
 # polarisation vector and the polarised intensity. This plot is automatically
 # saved.
 scat_plot2(ang_sep_centres, true_compl_P_struc, ang_sep_centres,\
-	true_P_inten_struc, data_loc + 'sgps_true_struc_func_{}.png'.format(add_value),\
+	true_P_inten_struc, data_loc + 'sgps_true_SF_{}_{}.png'.format(xmax,ymax),\
 	'png',x_label= 'Angular Separation [deg]', y_label = 'Structure Function Value'\
 	+ ' [Jy^2/beam^2]', title = \
-	'True Structure Functions Added Stokes {}'.format(add_value), col1 = 'b',\
+	'True Structure Functions X: {}-{} Y: {}-{}'.format(xmin,xmax,ymin,ymax), col1 = 'b',\
 	col2 = 'r', label1 = 'Complex Polarisation', label2 ='Polarised Intensity',\
 	marker1 = 'o', marker2 = 'x', log_x = True, log_y = True, loc = 4)
 
