@@ -1,12 +1,12 @@
 #------------------------------------------------------------------------------#
 #                                                                              #
 # This code is a Python version of the tutorial.pro IDL code written by        #
-# Alex Lazarian, and available at                                              #
+# Alexy Chepurnov, and available at                                            #
 # http://www.astro.wisc.edu/~lazarian/code.html. This is a script designed to  #
 # test the various functions available on this website, and to demonstrate how #
 # they work.                                                                   #
 #                                                                              #
-# Author: Chris Herron (adapted from code written by Alex Lazarian)            #
+# Author: Chris Herron (adapted from code written by Alexy Chepurnov)          #
 # Start Date: 4/9/2014                                                         #
 #                                                                              #
 #------------------------------------------------------------------------------#

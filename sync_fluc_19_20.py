@@ -2,10 +2,7 @@
 #                                                                              #
 # This code is a Python script that reads in arrays of simulated magnetic      #
 # field strengths, and calculates equations 19 and 20 of Lazarian and Pogosyan #
-# 2012, to check if these equations are correct. The script is also used to    #
-# investigate whether the normalised correlation functions of synchrotron      #
-# intensity are insensitive to the spectral index of cosmic ray electrons,     #
-# which is a claim of this paper.                                              #
+# 2012, to check if these equations are correct.                               #
 #                                                                              #
 # Author: Chris Herron                                                         #
 # Start Date: 8/9/2014                                                         #
@@ -44,14 +41,14 @@ data_loc =  simul_loc + spec_loc
 # field
 mag_x_fits = fits.open(data_loc + 'magx.fits')
 
-# Extract the data fo the simulated x-component of the magnetic field
+# Extract the data for the simulated x-component of the magnetic field
 mag_x_data = mag_x_fits[0].data
 
 # Open the FITS file that contains the y-component of the simulated magnetic 
 # field
 mag_y_fits = fits.open(data_loc + 'magy.fits')
 
-# Extract the data fo the simulated y-component of the magnetic field
+# Extract the data for the simulated y-component of the magnetic field
 mag_y_data = mag_y_fits[0].data
 
 # Print a message to the screen to show that the data has been loaded
@@ -75,7 +72,11 @@ print 'Perpendicular component of the magnetic field calculated'
 # ---------------- Normalised correlation x-comp B field ----------------------
 
 # Calculate the correlation function for the x-component of the magnetic field
-x_corr = cf_fft(mag_x_data)
+x_corr = cf_fft(mag_x_data, no_fluct = True)
+
+# Print a message to show that the correlation function of the x-component of
+# the magnetic field has been calculated
+print 'Correlation function of the x-component of the magnetic field calculated'
 
 # Calculate the radially averaged correlation function for the x-component
 # of the magnetic field
@@ -97,7 +98,11 @@ print 'Normalised correlation function for the x-component of the magnetic'\
 # ---------------- Normalised correlation y-comp B field ----------------------
 
 # Calculate the correlation function for the y-component of the magnetic field
-y_corr = cf_fft(mag_y_data)
+y_corr = cf_fft(mag_y_data, no_fluct = True)
+
+# Print a message to show that the correlation function of the y-component of
+# the magnetic field has been calculated
+print 'Correlation function of the y-component of the magnetic field calculated'
 
 # Calculate the radially averaged correlation function for the y-component
 # of the magnetic field
@@ -140,7 +145,12 @@ mag_mean_sq_gamma_2 = np.mean( np.power(mag_perp_gamma_2, 2.0) )
 
 # Calculate the correlation function for the perpendicular component of the
 # magnetic field, when raised to the power of gamma = 2
-perp_gamma_2_corr = cf_fft(mag_perp_gamma_2)
+perp_gamma_2_corr = cf_fft(mag_perp_gamma_2, no_fluct = True)
+
+# Print a message to show that the correlation function of the perpendicular 
+# component of the magnetic field has been calculated for gamma = 2
+print 'Correlation function of the perpendicular component of the magnetic'\
++ ' field calculated for gamma = 2'
 
 # Calculate the radially averaged correlation function for the perpendicular
 # component of the magnetic field, raised to the power of gamma = 2
@@ -172,7 +182,12 @@ mag_mean_sq_gamma_4 = np.mean( np.power(mag_perp_gamma_4, 2.0) )
 
 # Calculate the correlation function for the perpendicular component of the
 # magnetic field, when raised to the power of gamma = 4
-perp_gamma_4_corr = cf_fft(mag_perp_gamma_4)
+perp_gamma_4_corr = cf_fft(mag_perp_gamma_4, no_fluct = True)
+
+# Print a message to show that the correlation function of the perpendicular 
+# component of the magnetic field has been calculated for gamma = 2
+print 'Correlation function of the perpendicular component of the magnetic'\
++ ' field calculated for gamma = 4'
 
 # Calculate the radially averaged correlation function for the perpendicular
 # component of the magnetic field, raised to the power of gamma = 4
@@ -205,7 +220,7 @@ plt.plot(radius_array, mag_gamma_2_norm_corr, 'r-o', label = 'Norm Corr B Perp')
 ax1.set_xscale('log')
 
 # Make the y axis of the plot logarithmic
-ax1.set_yscale('log')
+#ax1.set_yscale('log')
 
 # Add a label to the x-axis
 plt.xlabel('Radial Separation R', fontsize = 20)
@@ -220,7 +235,7 @@ plt.title('Comparison LHS and RHS Eq. 19', fontsize = 20)
 plt.legend()
 
 # Save the figure using the given filename and format
-plt.savefig(data_loc + 'Eq_19_Norm_Corr_Comp.png', format = 'png')
+plt.savefig(data_loc + 'Eq_19_Norm_Corr_Comp_3.png', format = 'png')
 
 # Create a figure to display a plot showing the difference between the left
 # and right hand sides of Equation 19
@@ -233,7 +248,7 @@ ax2 = fig2.add_subplot(111)
 plt.plot(radius_array, RHS_19 - mag_gamma_2_norm_corr, 'b-o') 
 
 # Make the x axis of the plot logarithmic
-#ax2.set_xscale('log')
+ax2.set_xscale('log')
 
 # Make the y axis of the plot logarithmic
 #ax2.set_yscale('log')
@@ -248,7 +263,7 @@ plt.ylabel('Difference between LHS and RHS', fontsize = 20)
 plt.title('Difference LHS and RHS Eq. 19', fontsize = 20)
 
 # Save the figure using the given filename and format
-plt.savefig(data_loc + 'Eq_19_Side_Diff.png', format = 'png')
+plt.savefig(data_loc + 'Eq_19_Side_Diff_3.png', format = 'png')
 
 # Print a message to show that the plots were successfully created for gamma = 2
 print 'Comparison plots created for gamma = 2, equation 19'
@@ -270,7 +285,7 @@ plt.plot(radius_array, mag_gamma_4_norm_corr, 'r-o', label = 'Norm Corr B Perp')
 ax3.set_xscale('log')
 
 # Make the y axis of the plot logarithmic
-ax3.set_yscale('log')
+#ax3.set_yscale('log')
 
 # Add a label to the x-axis
 plt.xlabel('Radial Separation R', fontsize = 20)
@@ -285,7 +300,7 @@ plt.title('Comparison LHS and RHS Eq. 20', fontsize = 20)
 plt.legend()
 
 # Save the figure using the given filename and format
-plt.savefig(data_loc + 'Eq_20_Norm_Corr_Comp.png', format = 'png')
+plt.savefig(data_loc + 'Eq_20_Norm_Corr_Comp_3.png', format = 'png')
 
 # Create a figure to display a plot showing the difference between the left
 # and right hand sides of Equation 20
@@ -298,7 +313,7 @@ ax4 = fig4.add_subplot(111)
 plt.plot(radius_array, RHS_20 - mag_gamma_4_norm_corr, 'b-o') 
 
 # Make the x axis of the plot logarithmic
-#ax4.set_xscale('log')
+ax4.set_xscale('log')
 
 # Make the y axis of the plot logarithmic
 #ax4.set_yscale('log')
@@ -313,7 +328,7 @@ plt.ylabel('Difference between LHS and RHS', fontsize = 20)
 plt.title('Difference LHS and RHS Eq. 20', fontsize = 20)
 
 # Save the figure using the given filename and format
-plt.savefig(data_loc + 'Eq_20_Side_Diff.png', format = 'png')
+plt.savefig(data_loc + 'Eq_20_Side_Diff_3.png', format = 'png')
 
 # Print a message to show that the plots were successfully created for gamma = 4
 print 'Comparison plots created for gamma = 4, equation 20'

@@ -1,12 +1,12 @@
 #------------------------------------------------------------------------------#
 #                                                                              #
-# This code is a Python version of the sfr.pro IDL code written by Alex        #
-# Lazarian, and available at http://www.astro.wisc.edu/~lazarian/code.html.    #
+# This code is a Python version of the sfr.pro IDL code written by Alexy       #
+# Chepurnov, and available at http://www.astro.wisc.edu/~lazarian/code.html.   #
 # This function averages the calculated structure function or correlation      #
 # function over distance in the image or datacube, to produce a                #
 # one-dimensional correlation function or structure function.                  #
 #                                                                              #
-# Author: Chris Herron (adapted from code written by Alex Lazarian)            #
+# Author: Chris Herron (adapted from code written by Alexy Chepurnov)          #
 # Start Date: 3/9/2014                                                         #
 #                                                                              #
 #------------------------------------------------------------------------------#
@@ -78,16 +78,39 @@ def sfr(sf, nb):
 	# degenerate dimensions
 	r_set = np.zeros((N1, N2, N3))
 
-	# Loop over the entries in the first dimension of the array, to calculate
-	# the distance to each entry in the array
-	for i in range(N1):
-		# Loop over the entries in the second dimension of the array
-		for j in range(N2): 
-			# Loop over the entries in the third dimension of the array
-			for k in range(N3):
-				# Calculate the distance to this particular array entry
-				r_set[i,j,k] = np.sqrt(np.power(i, 2.0) + np.power(j, 2.0) +\
-				np.power(k, 2.0))
+	# Create an array that specifies the index value along the first dimension
+	# of the data 
+	N1_indices = np.linspace(0, N1 - 1, num = N1)
+
+	# Create an array that specifies the index value along the second dimension
+	# of the data 
+	N2_indices = np.linspace(0, N2 - 1, num = N2)
+
+	# Create an array that specifies the index value along the third dimension
+	# of the data 
+	N3_indices = np.linspace(0, N3 - 1, num = N3)
+
+	# Use meshgrid to obtain the (x,y,z) = (i,j,k) pixel index co-ordinates
+	# of every point in the data. i_mat specifies the index value along the
+	# first dimension, j_mat specifies the index value along the second
+	# dimension, and k_mat specifies the index value along the third dimension
+	i_mat, j_mat, k_mat = np.meshgrid(N1_indices, N2_indices, N3_indices,\
+	 indexing = 'ij')
+
+	# Calculate the distance to each entry in the array
+	r_set = np.sqrt(np.power(i_mat, 2.0) + np.power(j_mat, 2.0) +\
+	 np.power(k_mat, 2.0))
+
+	# # Loop over the entries in the first dimension of the array, to calculate
+	# # the distance to each entry in the array
+	# for i in range(N1):
+	# 	# Loop over the entries in the second dimension of the array
+	# 	for j in range(N2): 
+	# 		# Loop over the entries in the third dimension of the array
+	# 		for k in range(N3):
+	# 			# Calculate the distance to this particular array entry
+	# 			r_set[i,j,k] = np.sqrt(np.power(i, 2.0) + np.power(j, 2.0) +\
+	# 			np.power(k, 2.0))
 
 	# Now that all of the required distances have been calculated, remove any
 	# degenerate dimensions in the distance array
@@ -111,10 +134,14 @@ def sfr(sf, nb):
 	r_min = 0.0
 	r_max = np.log10(max([N1-1, N2-1, N3-1]))
 
+	# Construct an array that specifies the bin edges to use when performing
+	# a radial average. These bins are equally spaced logarithmically.
+	bin_edges = np.linspace(r_min, r_max, num = nb + 1)
+
 	# Construct a histogram of the radius values being used to calculate the
 	# function, just so we can get the bin edges of the histogram
-	rlist, bin_edges = np.histogram(np.log10(flat_r_set), bins = nb, \
-	range = (r_min, r_max))
+	# rlist, bin_edges = np.histogram(np.log10(flat_r_set), bins = nb, \
+	# range = (r_min, r_max))
 
 	# Now we need to figure out which elements of the radius value array are in 
 	# which bin

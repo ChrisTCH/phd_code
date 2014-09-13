@@ -1,10 +1,10 @@
 #------------------------------------------------------------------------------#
 #                                                                              #
-# This code is a Python version of the spektrt.pro IDL code written by Alex    #
-# Lazarian, and available at http://www.astro.wisc.edu/~lazarian/code.html.    #
+# This code is a Python version of the spektrt.pro IDL code written by Alexy   #
+# Chepurnov, and available at http://www.astro.wisc.edu/~lazarian/code.html.   #
 # This function calculates the spectrum of a 2D image or 3D data cube.         #
 #                                                                              #
-# Author: Chris Herron (adapted from code written by Alex Lazarian)            #
+# Author: Chris Herron (adapted from code written by Alexy Chepurnov)          #
 # Start Date: 3/9/2014                                                         #
 #                                                                              #
 #------------------------------------------------------------------------------#
@@ -80,10 +80,14 @@ def spektrt(source, nb, no_pi = False):
 	# Set the zero frequency value of the k array to some small number
 	flat_k_set[0] = 0.0001
 
+	# Construct an array that specifies the bin edges to use when performing
+	# an average over k. These bins are equally spaced logarithmically.
+	bin_edges = np.linspace(k_min, k_max, num = nb + 1)
+
 	# Construct a histogram of the k values being used to calculate the
 	# spectrum, just so we can get the bin edges of the histogram
-	klist, bin_edges = np.histogram(np.log10(flat_k_set), bins = nb, range =\
-	(k_min, k_max))
+	# klist, bin_edges = np.histogram(np.log10(flat_k_set), bins = nb, range =\
+	# (k_min, k_max))
 
 	# Now we need to figure out which elements of the k value array are in 
 	# which bin

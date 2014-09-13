@@ -1,11 +1,11 @@
 #------------------------------------------------------------------------------#
 #                                                                              #
-# This code is a Python version of the setks.pro IDL code written by Alex      #
-# Lazarian, and available at http://www.astro.wisc.edu/~lazarian/code.html.    #
+# This code is a Python version of the setks.pro IDL code written by Alexy     #
+# Chepurnov, and available at http://www.astro.wisc.edu/~lazarian/code.html.   #
 # This function creates the arrays of k values to be used when calculating the #
 # spectrum of a 2D image or 3D data cube.                                      #
 #                                                                              #
-# Author: Chris Herron (adapted from code written by Alex Lazarian)            #
+# Author: Chris Herron (adapted from code written by Alexy Chepurnov)          #
 # Start Date: 3/9/2014                                                         #
 #                                                                              #
 #------------------------------------------------------------------------------#
@@ -103,50 +103,86 @@ def setks(sizeden, no_pi = False, anti_alias = False):
 	nyq3 = N3/2.0
 	nyq3_1 = nyq3 - 1.0
 
-	# Start calculating k values by looping over the third dimension of the data
-	# This loop iterates from 0 to N3 - 1, inclusive.
-	for i3 in range(N3):
-		# Create a new variable, related to the wavenumber in the direction of 
-		# the third dimension.
-		i3k = i3
+	# Create an array of values related to the wavenumber in the direction of
+	# the first dimension
+	i1k = np.concatenate((np.linspace(0,nyq1_1,nyq1), np.linspace(nyq1,1,nyq1)))
 
-		# Check to see if the iteration along the third dimension is past the
-		# halfway point
-		if i3 >= nyq3:
-			# In this case we are past the halfway point, so calculate i3k
-			# to take this into account
-			i3k = N3 - i3
+	# Check to see if the data for which a spectrum is being taken has 2 or
+	# more dimensions
+	if len(sizeden) >= 2:
+		# Create an array of values related to the wavenumber in the direction of
+		# the second dimension
+		i2k = np.concatenate((np.linspace(0,nyq2_1,nyq2),\
+		 np.linspace(nyq2,1,nyq2)))
+	else:
+		# In this case the data is one-dimensional, so just make i2k an array
+		# whose only entry is a zero
+		i2k = np.array([0])
 
-		# Now loop over the second dimension, from 0 to N2 - 1 inclusive.    
-		for i2 in range(N2):
-			# Create a new variable, related to the wavenumber in the direction
-			# of the second dimension
-			i2k = i2
+	# Check to see if the data for which a spectrum is being taken has 3 or
+	# more dimensions
+	if len(sizeden) >= 3:
+		# Create an array of values related to the wavenumber in the direction of
+		# the third dimension
+		i3k = np.concatenate((np.linspace(0,nyq3_1,nyq3), np.linspace(nyq3,1,nyq3)))
+	else:
+		# In this case the data is two-dimensional, so just make i3k an array
+		# whose only entry is a zero
+		i3k = np.array([0])
 
-			# Check to see if the iteration along the second dimension is past
-			# the halfway point
-			if i2 >= nyq2: 
-				# In this case we are past the halfway point, so calculate i2k
-				# to take this into account
-				i2k = N2 - i2
+	# Use meshgrid to obtain a 3D grid specifying the components of the 
+	# wavevector at each entry in the array
+	i1k_mat, i2k_mat, i3k_mat = np.meshgrid(i1k, i2k, i3k, indexing = 'ij')
 
-			# Now loop over the first dimension, from 0 to N1 - 1 inclusive.
-			for i1 in range(N1):
-				# Create a new variable, related to the wavenumber in the 
-				# direction of the first dimension
-				i1k = i1
+	# Now that all of i1k, i2k, i3k matrices have been calculated, enter the
+	# wavenumber array for this wavevector array 
+	k_set = C * np.sqrt(np.power(i1k_mat, 2.0) + np.power(i2k_mat, 2.0) +\
+	 np.power(i3k_mat, 2.0))
 
-				# Check to see if the iteration along the first dimension is
-				# past the halfway point
-				if i1 >= nyq1:
-					# In this case we are past the halfway point, so calculate
-					# i1k to take this into account
-					i1k = N1 - i1
+	# # Start calculating k values by looping over the third dimension of the data
+	# # This loop iterates from 0 to N3 - 1, inclusive.
+	# for i3 in range(N3):
+	# 	# Create a new variable, related to the wavenumber in the direction of 
+	# 	# the third dimension.
+	# 	i3k = i3
+
+	# 	# Check to see if the iteration along the third dimension is past the
+	# 	# halfway point
+	# 	if i3 >= nyq3:
+	# 		# In this case we are past the halfway point, so calculate i3k
+	# 		# to take this into account
+	# 		i3k = N3 - i3
+
+	# 	# Now loop over the second dimension, from 0 to N2 - 1 inclusive.    
+	# 	for i2 in range(N2):
+	# 		# Create a new variable, related to the wavenumber in the direction
+	# 		# of the second dimension
+	# 		i2k = i2
+
+	# 		# Check to see if the iteration along the second dimension is past
+	# 		# the halfway point
+	# 		if i2 >= nyq2: 
+	# 			# In this case we are past the halfway point, so calculate i2k
+	# 			# to take this into account
+	# 			i2k = N2 - i2
+
+	# 		# Now loop over the first dimension, from 0 to N1 - 1 inclusive.
+	# 		for i1 in range(N1):
+	# 			# Create a new variable, related to the wavenumber in the 
+	# 			# direction of the first dimension
+	# 			i1k = i1
+
+	# 			# Check to see if the iteration along the first dimension is
+	# 			# past the halfway point
+	# 			if i1 >= nyq1:
+	# 				# In this case we are past the halfway point, so calculate
+	# 				# i1k to take this into account
+	# 				i1k = N1 - i1
 				
-				# Now that all of i1k, i2k, i3k have been calculated, enter the
-				# wavenumber for this entry of the array
-				k_set[i1,i2,i3] = C * np.sqrt(np.power(i1k, 2.0) +\
-				np.power(i2k, 2.0) + np.power(i3k, 2.0))
+	# 			# Now that all of i1k, i2k, i3k have been calculated, enter the
+	# 			# wavenumber for this entry of the array
+	# 			k_set[i1,i2,i3] = C * np.sqrt(np.power(i1k, 2.0) +\
+	# 			np.power(i2k, 2.0) + np.power(i3k, 2.0))
 
 	# When the code reaches this point, all of the k values have been calculated
 	# Check to see if the k values are to be anti-aliased

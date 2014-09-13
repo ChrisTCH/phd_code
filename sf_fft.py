@@ -1,11 +1,11 @@
 #------------------------------------------------------------------------------#
 #                                                                              #
-# This code is a Python version of the sf_fft.pro IDL code written by Alex     #
-# Lazarian, and available at http://www.astro.wisc.edu/~lazarian/code.html.    #
+# This code is a Python version of the sf_fft.pro IDL code written by Alexy    #
+# Chepurnov, and available at http://www.astro.wisc.edu/~lazarian/code.html.   #
 # This function calculates the structure function of an image or data cube,    #
 # using a fast fourier transform.                                              #
 #                                                                              #
-# Author: Chris Herron (adapted from code written by Alex Lazarian)            #
+# Author: Chris Herron (adapted from code written by Alexy Chepurnov)          #
 # Start Date: 4/9/2014                                                         #
 #                                                                              #
 #------------------------------------------------------------------------------#
@@ -85,7 +85,12 @@ def sf_fft(field, no_fluct = False, mirror = False, const = False):
 		field1 = field
 
 	# Calculate the fourier transform of the data
-	fftfield = np.fft.fftn(field1)
+	# NOTE: In the IDL convention for forward FFT, there is a normalisation
+	# factor, but the Python convention does not involve the normalisation
+	# factor. To ensure the same output as the IDL code, the result
+	# of the FFT is divided by the number of data points, to
+	# undo the effect of the normalisation.
+	fftfield = np.fft.fftn(field1) / np.size(field1)
 
 	# Multiply the fourier transform of the data by it's complex conjugate
 	ps = fftfield * np.conj(fftfield)
@@ -93,7 +98,12 @@ def sf_fft(field, no_fluct = False, mirror = False, const = False):
 	# Perform an inverse fourier transform on the result obtained by multiplying
 	# the fourier transform with its conjugate. This gives the auto-correlation
 	# function.
-	acf = np.fft.ifftn(ps)
+	# NOTE: In the IDL convention for inverse FFT, there is no normalisation
+	# factor, but the Python convention involves dividing by the number of
+	# data points. To ensure the same output as the IDL code, the result
+	# of the inverse FFT is multiplied by the number of data points, to
+	# undo the effect of the normalisation.
+	acf = np.fft.ifftn(ps) * np.size(ps)
 
 	# Due to numerical imprecision, there may be small imaginary parts in
 	# every entry of the produced array. We are only interested in the real 
