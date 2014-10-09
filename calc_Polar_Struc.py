@@ -177,7 +177,7 @@ def calc_Polar_Struc(obs_Sto_Q, obs_Sto_U, noise_Sto_Q, noise_Sto_U,\
             # Add the sum of the relevant quantity for points in the j-th
             # bin to the running total for the observed complex polarisation.
             obs_compl_P_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
-            np.sum(obs_compl_P_diff[bin_allocation == j])
+            np.sum(obs_compl_P_diff[bin_allocation == j], dtype = np.float64)
 
             # Add the number of pixels for the j-th bin to the running total
             # for the observed complex polarisation
@@ -186,7 +186,7 @@ def calc_Polar_Struc(obs_Sto_Q, obs_Sto_U, noise_Sto_Q, noise_Sto_U,\
             # Add the sum of the relevant quantity for points in the j-th
             # bin to the running total for the noise complex polarisation.
             noise_compl_P_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
-            np.sum(noise_compl_P_diff[bin_allocation == j])
+            np.sum(noise_compl_P_diff[bin_allocation == j], dtype = np.float64)
 
             # Add the number of pixels for the j-th bin to the running total
             # for the noise complex polarisation
@@ -195,7 +195,7 @@ def calc_Polar_Struc(obs_Sto_Q, obs_Sto_U, noise_Sto_Q, noise_Sto_U,\
             # Add the sum of the relevant quantity for points in the j-th
             # bin to the running total for the observed polarisation intensity.
             obs_P_inten_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
-            np.sum(obs_P_inten_diff[bin_allocation == j])
+            np.sum(obs_P_inten_diff[bin_allocation == j], dtype = np.float64)
 
             # Add the number of pixels for the j-th bin to the running total
             # for the observed polarisation intensity
@@ -204,7 +204,7 @@ def calc_Polar_Struc(obs_Sto_Q, obs_Sto_U, noise_Sto_Q, noise_Sto_U,\
             # Add the sum of the relevant quantity for points in the j-th
             # bin to the running total for the noise polarisation intensity.
             noise_P_inten_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
-            np.sum(noise_P_inten_diff[bin_allocation == j])
+            np.sum(noise_P_inten_diff[bin_allocation == j], dtype = np.float64)
 
             # Add the number of pixels for the j-th bin to the running total
             # for the noise polarisation intensity

@@ -171,10 +171,11 @@ def sfr(sf, nb):
 
 			# Since this bin is not empty, it makes sense to calculate the 
 			# average of all radius values in this bin
-			sf_r[0,i - 1] = np.sum(r_i_bin) / sf_r[2,i - 1]
+			sf_r[0,i - 1] = np.sum(r_i_bin, dtype = np.float64) / sf_r[2,i - 1]
 
 			# Calculate the radially averaged function for these radius values
-			sf_r[1,i - 1] = np.sum(flat_sf[bin_indices == i]) / sf_r[2,i - 1]
+			sf_r[1,i - 1] = np.sum(flat_sf[bin_indices == i], dtype =\
+			 np.float64) / sf_r[2,i - 1]
 
 			# Print a message to the screen to show what is happening
 			print 'Sfr: Radial average for bin {} complete'.format(i)

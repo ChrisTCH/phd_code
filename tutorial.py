@@ -60,7 +60,7 @@ print 'Tutorial: You are before the slicing procedure \n'
 print 'Tutorial: You are after the slicing procedure'
 
 # Integrate the cubes in the z direction using Numpy's sum function. The x-axis
-# has index 0, the y axis axis has index 1, and the z axis has index 2.
+# has index 2, the y axis axis has index 1, and the z axis has index 0.
 int1 = np.sum(rho1, axis = 2)
 int2 = np.sum(rho2, axis = 2)
 

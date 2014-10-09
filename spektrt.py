@@ -116,11 +116,11 @@ def spektrt(source, nb, no_pi = False):
 
 			# Since this bin is not empty, it makes sense to calculate the 
 			# average of all k values in this bin
-			pk[0,i - 1] = np.sum(k_i_bin) / pk[2,i - 1]
+			pk[0,i - 1] = np.sum(k_i_bin, dtype = np.float64) / pk[2,i - 1]
 
 			# Calculate the power spectrum for these k values
 			pk[1,i - 1] = np.sum(np.power(np.abs(flat_den[bin_indices == i]),\
-			 2.0)) / pk[2,i - 1]
+			 2.0), dtype = np.float64) / pk[2,i - 1]
 
 			# Print a message to the screen to show what is happening
 			print 'Spektrt: Power spectrum for bin {} complete'.format(i)

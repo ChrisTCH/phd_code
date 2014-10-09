@@ -194,7 +194,7 @@ def fractalcube(beta, seed = 1, size = 128):
 	ffdata = np.fft.fftshift(ffdata)
 
 	# Calculate the unbiased sample variance of the inverse transformed data
-	var = np.var(ffdata, ddof = 1)
+	var = np.var(ffdata, ddof = 1, dtype = np.float64)
 
 	# Normalise the fractal data cube using the calculated variance
 	frac_cube = ffdata / np.sqrt(var)

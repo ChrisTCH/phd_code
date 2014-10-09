@@ -116,7 +116,7 @@ def calc_Struc_Func(data_array, lon_coords, lat_coords, bin_edges,\
             # Add the sum of the relevant quantity for points in the j-th
             # bin to the running total for the data.
             data_dict['{}'.format(ang_sep_centres[j - 1])][0] +=\
-            np.sum(data_diff_array[bin_allocation == j])
+            np.sum(data_diff_array[bin_allocation == j], dtype = np.float64)
 
             # Add the number of pixels for the j-th bin to the running total
             # for the data
