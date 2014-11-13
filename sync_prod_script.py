@@ -45,7 +45,12 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'c512b5p2/'
+spec_loc = 'b1p2_Aug_Burk/'
+
+# Create a variable that controls whether the line of sight is assumed to be
+# along the x, y or z axis of the data cube when constructing the synchrotron
+# maps. This can be 'x', 'y', or 'z'
+line_o_sight = 'z'
 
 # Create a string for the full directory path to use in calculations
 data_loc =  simul_loc + spec_loc
@@ -62,17 +67,24 @@ gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
  
 # Open the FITS file that contains the x-component of the simulated magnetic
 # field
-mag_x_fits = fits.open(data_loc + 'magx.fits')
+mag_x_fits = fits.open(data_loc + 'bx_b1p2_slow.fits')
 
 # Extract the data for the simulated x-component of the magnetic field
 mag_x_data = mag_x_fits[0].data
 
 # Open the FITS file that contains the y-component of the simulated magnetic 
 # field
-mag_y_fits = fits.open(data_loc + 'magy.fits')
+mag_y_fits = fits.open(data_loc + 'by_b1p2_slow.fits')
 
 # Extract the data for the simulated y-component of the magnetic field
 mag_y_data = mag_y_fits[0].data
+
+# Open the FITS file that contains the z-component of the simulated magnetic 
+# field
+mag_z_fits = fits.open(data_loc + 'bz_b1p2_slow.fits')
+
+# Extract the data for the simulated z-component of the magnetic field
+mag_z_data = mag_z_fits[0].data
 
 # ------ Use this code to test with fractal data
 
@@ -95,10 +107,39 @@ mag_y_data = mag_y_fits[0].data
 # Print a message to the screen to show that the data has been loaded
 print 'Magnetic field components loaded successfully'
 
-# Calculate the magnitude of the magnetic field perpendicular to the line of 
-# sight, which is just the square root of the sum of the x and y component
-# magnitudes squared.
-mag_perp = np.sqrt( np.power(mag_x_data, 2.0) + np.power(mag_y_data, 2.0) )
+# Depending on the line of sight, the strength of the magnetic field 
+# perpendicular to the line of sight is calculated in different ways
+if line_o_sight == 'z':
+	# Calculate the magnitude of the magnetic field perpendicular to the line of
+	# sight, which is just the square root of the sum of the x and y component
+	# magnitudes squared.
+	mag_perp = np.sqrt( np.power(mag_x_data, 2.0) + np.power(mag_y_data, 2.0) )
+
+	# Construct a variable which tells the script which axis we need to 
+	# integrate along to calculate the synchrotron maps. Since the line of sight
+	# is the z axis, we need to integrate along axis 0. (Numpy convention is 
+	# that axes are ordered as (z, y, x))
+	int_axis = 0
+elif line_o_sight == 'y':
+	# Calculate the magnitude of the magnetic field perpendicular to the line of
+	# sight, which is just the square root of the sum of the x and z component
+	# magnitudes squared.
+	mag_perp = np.sqrt( np.power(mag_x_data, 2.0) + np.power(mag_z_data, 2.0) )
+
+	# Construct a variable which tells the script which axis we need to 
+	# integrate along to calculate the synchrotron maps. Since the line of sight
+	# is the y axis, we need to integrate along axis 1.
+	int_axis = 1
+elif line_o_sight == 'x':
+	# Calculate the magnitude of the magnetic field perpendicular to the line of
+	# sight, which is just the square root of the sum of the y and z component
+	# magnitudes squared.
+	mag_perp = np.sqrt( np.power(mag_y_data, 2.0) + np.power(mag_z_data, 2.0) )
+
+	# Construct a variable which tells the script which axis we need to 
+	# integrate along to calculate the synchrotron maps. Since the line of sight
+	# is the x axis, we need to integrate along axis 2.
+	int_axis = 2
 
 # Create a Numpy array to hold the calculated synchrotron emission maps
 sync_arr = np.zeros((len(gamma_arr), np.shape(mag_perp)[1],\
@@ -112,12 +153,12 @@ for i in range(len(gamma_arr)):
 	mag_perp_gamma = np.power(mag_perp, gamma_arr[i])
 
 	# Integrate the perpendicular magnetic field strength raised to the power
-	# of gamma along the z-axis, to calculate the observed synchrotron map. This
-	# integration is performed by the trapezoidal rule. To normalise the 
-	# calculated synchrotron map, divide by the number of pixels along the 
+	# of gamma along the required axis, to calculate the observed synchrotron 
+	# map. This integration is performed by the trapezoidal rule. To normalise 
+	# the calculated synchrotron map, divide by the number of pixels along the 
 	# z-axis. Note the array is ordered by (z,y,x)!
 	# NOTE: Set dx to whatever the pixel spacing is
-	sync_arr[i] = np.trapz(mag_perp_gamma, dx = 1.0, axis = 0) /\
+	sync_arr[i] = np.trapz(mag_perp_gamma, dx = 1.0, axis = int_axis) /\
 	 np.shape(mag_perp)[0]
 
 # Print a message to the screen stating that the synchrotron maps have been
@@ -149,7 +190,8 @@ pri_hdu.header['CDELT3'] = 0.5
 pri_hdu.header['CTYPE3'] = 'Gamma   '
 
 # Save the produced synchrotron maps as a FITS file
-mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4.fits')
+mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4' +\
+ line_o_sight + '_slow' + '.fits')
 
 # Print a message to state that the FITS file was saved successfully
 print 'FITS file of synchrotron maps saved successfully'

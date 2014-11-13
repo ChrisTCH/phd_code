@@ -17,7 +17,7 @@ import sys
 
 # Define the function sfr, which calculates a radially averaged correlation 
 # function or structure function.
-def sfr(sf, nb):
+def sfr(sf, nb, verbose = True):
 	'''
 	Description
 		This function calculates the radially averaged correlation or 
@@ -29,6 +29,9 @@ def sfr(sf, nb):
 			that is to be radially averaged. 
 		nb: The number of bins to use when calculating the radially averaged
 			correlation or structure function.
+		verbose: If True, then progress reports are printed out after each
+				 bin has been calculated. If False, then no progress report
+				 is printed.
 	
 	Output
 		sf_r: A numpy array with three rows. The first row contains the radius
@@ -177,8 +180,9 @@ def sfr(sf, nb):
 			sf_r[1,i - 1] = np.sum(flat_sf[bin_indices == i], dtype =\
 			 np.float64) / sf_r[2,i - 1]
 
-			# Print a message to the screen to show what is happening
-			print 'Sfr: Radial average for bin {} complete'.format(i)
+			if verbose == True:
+				# Print a message to the screen to show what is happening
+				print 'Sfr: Radial average for bin {} complete'.format(i)
 			
 	# The radially averaged function, and radius value for each data point have
 	# now been calculated, so return them to the calling function

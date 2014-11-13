@@ -85,7 +85,7 @@ def _next_regular(target):
 
 # Define the function cf_fft, which calculates the correlation function of an
 # image or data cube.
-def cf_fft(field1, field2 = None, no_fluct = False, mirror = False):
+def cf_fft(field1, field2 = None, no_fluct = False, normalise = False, mirror = False):
 	'''
 	Description
 		This function calculates the correlation function of an image or data
@@ -109,6 +109,10 @@ def cf_fft(field1, field2 = None, no_fluct = False, mirror = False):
 		no_fluct: A boolean value. If False, then the mean value of the data
 				  is subtracted from the data before calculating the correlation
 				  function. If True, then there is no subtraction of the mean.
+		normalise: A boolean value. If False, then the correlation function is 
+				   calculated. If True, then the correlation function is 
+				   normalised so that it must lie between +/- 1. Only use if 
+				   field2 = None.
 		mirror: A boolean value. If True, then the mirror image of the 
 				correlation function is returned. If False, then nothing happens
 	
@@ -396,6 +400,18 @@ def cf_fft(field1, field2 = None, no_fluct = False, mirror = False):
 					# entries of the correlation data to make it appear
 					# mirrored
 					cf[i1,i2,i3] = cf[i1k,i2k,i3k]
+
+	# If required, calculate the normalised auto-correlation function
+	if (field2 == None) and (normalise == True):
+		# In this case we need to return the normalised correlation function 
+		# Calculate the square of the mean of the field1 values
+		field1_sq_mean = np.power( np.mean(field1, dtype = np.float64), 2.0 )
+
+		# Calculate the mean of the field1 values squared
+		field1_mean_sq = np.mean( np.power(field1, 2.0), dtype = np.float64 )
+
+		# Calculate the normalised auto-correlation function 
+		cf = (cf - field1_sq_mean) / (field1_mean_sq - field1_sq_mean)
 
 	# Return the correlation function to the caller
 	return cf

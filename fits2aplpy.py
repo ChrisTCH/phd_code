@@ -17,7 +17,7 @@ import aplpy
 # Define the function fits2aplpy, which will produce an image from the given
 # FITS file object
 def fits2aplpy(fits_file, filename, dimensions = [0,1], slices = [], \
-colour = 'gray', vmin = None, vmax = None, convention = None):
+colour = 'gray', vmin = None, vmax = None, convention = None, stretch = 'linear'):
     '''
     Description
         This function produces an image of a FITS file image object in aplpy.
@@ -61,6 +61,9 @@ colour = 'gray', vmin = None, vmax = None, convention = None):
         convention - A string to be used if a FITS header can be interpreted
                      in multiple ways. For a Cartesian CAR projection, this
                      may be 'wells' or 'calabretta'.
+        stretch - A string describing the scaling to be applied to the colour
+                  map. Default is 'linear'. Other options are 'log', 'sqrt',
+                  'arcsinh' and 'power'.
                    
     Output
         fig - This function returns the aplpy FITSFigure instance which is 
@@ -85,12 +88,12 @@ colour = 'gray', vmin = None, vmax = None, convention = None):
         if vmin == None or vmax == None:
             # In this case the grayscale range is set automatically
             # Make a grayscale version of the image appear on the frame
-            fig.show_grayscale()
+            fig.show_grayscale(stretch = stretch)
         else:
             # In this case the grayscale range is set manually using the 
             # specified values for vmin and vmax
             # Make a grayscale version of the image appear on the frame
-            fig.show_grayscale(vmin = vmin, vmax = vmax)
+            fig.show_grayscale(vmin = vmin, vmax = vmax, stretch = stretch)
     else:
         # Check to see if the grayscale range is being set manually or 
         # automatically
@@ -98,13 +101,14 @@ colour = 'gray', vmin = None, vmax = None, convention = None):
             # In this case the colour scale range is being set automatically
             # Make a colour scale version of the image appear on the frame, 
             # using the colour map specified by the user
-            fig.show_colorscale(cmap = colour)
+            fig.show_colorscale(cmap = colour, stretch = stretch)
         else:
             # In this case the colour scale range is set manually using the 
             # specified values for vmin and vmax
             # Make a colour scale version of the image appear on the frame, 
             # using the colour map specified by the user
-            fig.show_colorscale(vmin = vmin, vmax = vmax, cmap = colour)
+            fig.show_colorscale(vmin = vmin, vmax = vmax, cmap = colour,\
+             stretch = stretch)
     
     # Add a co-ordinate grid to the image
     fig.add_grid()

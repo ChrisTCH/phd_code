@@ -48,13 +48,15 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'c512b5p2/'
+spec_loc = 'b1p2_Aug_Burk/'
 
 # Create a string for the full directory path to use in calculations
 data_loc =  simul_loc + spec_loc
 
 # Open the FITS file that contains the simulated synchrotron intensity maps
-sync_fits = fits.open(data_loc + 'synint_p1-4.fits')
+# Add 'x' to the end of the file to use the synchrotron maps calculated
+# with the line of sight along the x-axis.
+sync_fits = fits.open(data_loc + 'synint_p1-4z_slow.fits')
 
 # Extract the data for the simulated synchrotron intensities
 # This is a 3D data cube, where the slices along the third axis are the
@@ -176,56 +178,56 @@ plt.xlabel('Radial Separation R', fontsize = 20)
 plt.ylabel('Structure Function', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Sync Intensity Str Fun', fontsize = 20)
+plt.title('Sync Int Str Fun z-LOS Slow', fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 4)
 
 # Save the figure using the given filename and format
-plt.savefig(data_loc + 'Sync_Int_SF_Comp_test1.png', format = 'png')
+plt.savefig(data_loc + 'Sync_Intz_SF_Comp_slow.png', format = 'png')
 
 # Print a message to the screen to show that the plot of all of the synchrotron
 # structure functions has been saved
 print 'Plot of the radially averaged structure functions'\
 + ' for synchrotron intensity saved'
 
-# Create a figure to display a plot showing the maximum difference between the
-# structure functions
-fig2 = plt.figure()
+# # Create a figure to display a plot showing the maximum difference between the
+# # structure functions
+# fig2 = plt.figure()
 
-# Create an axis for this figure
-ax2 = fig2.add_subplot(111)
+# # Create an axis for this figure
+# ax2 = fig2.add_subplot(111)
 
-# Plot the maximum difference between the structure functions
-# What this code does is find the maximum and minimum structure function
-# values for each radial separation value, calculate the difference between
-# them, and then plot this.
-# Add /np.max(np.abs(cf_mat), axis = 0) to plot fractional difference
-plt.plot(rad_arr[0], (np.max(sf_mat, axis = 0) - np.min(sf_mat, axis = 0))\
-	/np.max(np.abs(sf_mat), axis = 0), 'b-o') 
+# # Plot the maximum difference between the structure functions
+# # What this code does is find the maximum and minimum structure function
+# # values for each radial separation value, calculate the difference between
+# # them, and then plot this.
+# # Add /np.max(np.abs(cf_mat), axis = 0) to plot fractional difference
+# plt.plot(rad_arr[0], (np.max(sf_mat, axis = 0) - np.min(sf_mat, axis = 0))\
+# 	/np.max(np.abs(sf_mat), axis = 0), 'b-o') 
 
-# Make the x axis of the plot logarithmic
-ax2.set_xscale('log')
+# # Make the x axis of the plot logarithmic
+# ax2.set_xscale('log')
 
-# Make the y axis of the plot logarithmic
-#ax2.set_yscale('log')
+# # Make the y axis of the plot logarithmic
+# #ax2.set_yscale('log')
 
-# Add a label to the x-axis
-plt.xlabel('Radial Separation R', fontsize = 20)
+# # Add a label to the x-axis
+# plt.xlabel('Radial Separation R', fontsize = 20)
 
-# Add a label to the y-axis
-plt.ylabel('Max difference', fontsize = 20)
+# # Add a label to the y-axis
+# plt.ylabel('Max difference', fontsize = 20)
 
-# Add a title to the plot
-plt.title('Maximum fractional difference between Str Fun', fontsize = 20)
+# # Add a title to the plot
+# plt.title('Maximum fractional difference between Str Fun', fontsize = 20)
 
-# Save the figure using the given filename and format
-plt.savefig(data_loc + 'Sync_Int_SF_MaxDiff_test1.png', format = 'png')
+# # Save the figure using the given filename and format
+# plt.savefig(data_loc + 'Sync_Intz_SF_MaxDiff_x_Alf.png', format = 'png')
 
 # Close the figures so that they don't stay in memory
 plt.close(fig1)
-plt.close(fig2)
+# plt.close(fig2)
 
-# Print a message to the screen to show that the plot of the maximum difference
-# between the structure functions has been saved
-print 'Plot of the maximum difference between the structure functions saved'
+# # Print a message to the screen to show that the plot of the maximum difference
+# # between the structure functions has been saved
+# print 'Plot of the maximum difference between the structure functions saved'

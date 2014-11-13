@@ -42,7 +42,12 @@ def spektrt(source, nb, no_pi = False):
 	'''
 
 	# Take a fast fourier transform of the input image or data cube
-	den = np.fft.fftn(source)
+	# NOTE: In the IDL convention for forward FFT, there is a normalisation
+	# factor, but the Python convention does not involve the normalisation
+	# factor. To ensure the same output as the IDL code, the result
+	# of the FFT is divided by the number of data points, to undo the effect
+	# of the normalisation.
+	den = np.fft.fftn(source) / np.size(source)
 
 	# For all dimensions of the image, extract the smallest length of any 
 	# dimension

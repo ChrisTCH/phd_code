@@ -20,7 +20,7 @@ from cf_fft import cf_fft
 
 # Define the function sf_fft, which calculates the structure function of an
 # image or data cube.
-def sf_fft(field, no_fluct = False, mirror = False, const = False):
+def sf_fft(field, no_fluct = False, normalise = False, mirror = False, const = False):
 	'''
 	Description
 		This function calculates the structure function of an image or data
@@ -32,6 +32,9 @@ def sf_fft(field, no_fluct = False, mirror = False, const = False):
 		no_fluct: A boolean value. If False, then the mean value of the data
 				  is subtracted from the data before calculating the structure
 				  function. If True, then there is no subtraction of the mean.
+		normalise: A boolean value. If False, then the structure function is 
+				   calculated. If True, then the structure function is 
+				   normalised so that it must lie between 0 and 2.
 		mirror: A boolean value. If True, then the mirror image of the 
 				structure function is returned. If False, then nothing happens
 		const: A boolean value. If True, then the structure function is 
@@ -45,7 +48,7 @@ def sf_fft(field, no_fluct = False, mirror = False, const = False):
 
 	# Calculate the auto-correlation function of the provided field, using
 	# the cf_fft function.
-	acf = cf_fft(field, no_fluct = no_fluct, mirror = mirror)
+	acf = cf_fft(field, no_fluct = no_fluct, normalise = normalise, mirror = mirror)
 
 	# # Determine the shape of the input data
 	# sizefield = np.shape(field)
@@ -174,13 +177,16 @@ def sf_fft(field, no_fluct = False, mirror = False, const = False):
 	# Check to see if the mean of the data was subtracted from the data before
 	# calculating the auto-correlation function, as this changes the formula
 	# used to calculate the structure function
-	if no_fluct == True:
+	if (no_fluct == True) and (normalise == False):
 		# In this case the mean of the data was not subtracted before 
 		# calculating the the auto-correlation function.
 		# Calculate the structure function from the auto-correlation function
 		sf = 2.0 * (np.mean(np.power(field1, 2.0), dtype = np.float64) - acf)
 		#sf = 2.0 * (np.max(acf) - acf)
-
+	elif normalise == True:
+		# Calculate the normalised structure function from the normalised 
+		# auto-correlation function
+		sf = 2.0 * (1.0 - acf)
 	else:
 		# In this case the mean of the data was subtracted before calculating
 		# the auto-correlation function, so use a different formula to 
