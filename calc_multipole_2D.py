@@ -198,7 +198,7 @@ def calc_multipole_2D(image, order = 0, num_bins = 15):
 	rad_arr = np.zeros(num_bins)
 
 	# Create an array of zeroes to hold all of the multipole values
-	multi_arr = np.zeros(num_bins)
+	multi_arr = np.zeros(num_bins, dtype = np.complex128)
 
 	# We now need to cycle through each of the bins, to calculate the value of
 	# the integral for that bin
@@ -218,21 +218,31 @@ def calc_multipole_2D(image, order = 0, num_bins = 15):
 			# Calculate the integrand of the integral that gives the multipole
 			integrand_i_bin = np.exp(-1.0j * order * phi_i_bin) * image_i_bin
 
+			# Calculate the real part of the integrand
+			real_integrand_i = np.real(integrand_i_bin)
+
+			# Calculate the imaginary part of the integrand
+			imag_integrand_i = np.imag(integrand_i_bin)
+
 			# Calculate the result of integrating over the polar angle phi by
 			# using the trapz function of Numpy. This automatically takes into
 			# account the value of phi for each pixel, so we don't need to 
 			# worry about spacings, or whether pixels have the same value of
-			# phi. The value of the multipole for this radius is stored in the
-			# corresponding array.
-			multi_arr[i - 1] = np.trapz(integrand_i_bin,phi_i_bin)/(2.0 * np.pi)
+			# phi. We need to integrate the real and immaginary parts of the
+			# integrand separately, because the integration method only 
+			# handles real numbers.
+			# First integrate the real part of the integrand
+			real_result = np.trapz(real_integrand_i,phi_i_bin)/(2.0 * np.pi)
+			# Integrate the imaginary part of the integrand
+			imag_result = np.trapz(imag_integrand_i,phi_i_bin)/(2.0 * np.pi)
+
+			# The value of the multipole for this radius is stored in the
+			# corresponding array, by recombining the real and imaginary parts
+			multi_arr[i - 1] = real_result + 1.0j * imag_result
 
 			# Calculate the average radius value for this bin, and store it in
 			# the radius array
 			rad_arr[i - 1] = np.mean(r_i_bin, dtype = np.float64)
-
-	# It is possible that the calculated multipole has an imaginary part, due
-	# to numerical imprecision, so extract the real part
-	multi_arr = np.real(multi_arr)
 
 	# We have now finished calculating the multipole, so return the multipole
 	# array and radius array

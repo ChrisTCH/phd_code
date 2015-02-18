@@ -50,9 +50,13 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # b1p.01_Oct_Burk
 # b1p2_Aug_Burk
 # c512b.1p.0049
+# c512b.1p.0077
+# c512b.1p.025
 # c512b.1p.05
 # c512b.1p.7
 # c512b1p.0049
+# c512b1p.0077
+# c512b1p.025
 # c512b1p.05
 # c512b1p.7
 # c512b3p.01
@@ -62,13 +66,15 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # Select which simulations to use in the calculation, based on the mag_choose
 # variable
 if mag_choose == '.1':
-	spec_loc = ['c512b.1p.0049/', 'b.1p.01_Oct_Burk/', 'c512b.1p.05/',\
+	spec_loc = ['c512b.1p.0049/', 'c512b.1p.0077', 'b.1p.01_Oct_Burk/',\
+	 'c512b.1p.025', 'c512b.1p.05/',\
 	 'b.1p.1_Oct_Burk/', 'c512b.1p.7/', 'b.1p2_Aug_Burk/']
 elif mag_choose == '1':
-	spec_loc = ['c512b1p.0049/', 'b1p.01_Oct_Burk/', 'c512b1p.05/',\
+	spec_loc = ['c512b1p.0049/', 'c512b1p.0077', 'b1p.01_Oct_Burk/',\
+	 'c512b1p.025', 'c512b1p.05/',\
 	 'b1p.1_Oct_Burk/', 'c512b1p.7/', 'b1p2_Aug_Burk/']
 elif mag_choose == 'range':
-	spec_loc = ['c512b3p.01/', 'c512b5p.01/', 'c512b5p2/']
+	spec_loc = ['c512b3p.01/', 'c512b5p.01/']
 
 # Create an array that specifies the value of gamma used to produce each 
 # synchrotron intensity map
@@ -85,7 +91,7 @@ for gam_index in range(len(gamma_arr)):
 	# current calculations
 	print 'Starting calculation for gamma = {}'.format(gamma_arr[gam_index])
 
-	# Create an array of zeroes, which will hold the values of the multipole
+	# Create an array of zeroes, which will hold the values of the quadrupole
 	# ratios calculated for the synchrotron data. This array is 2 dimensional, 
 	# with the same number of rows as simulations, the number of columns is equal
 	# to the number of bins being used to calculate the multipole ratios.

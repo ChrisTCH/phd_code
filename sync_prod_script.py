@@ -37,15 +37,19 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # b1p.01_Oct_Burk
 # b1p2_Aug_Burk
 # c512b.1p.0049
+# c512b.1p.0077
+# c512b.1p.025
 # c512b.1p.05
 # c512b.1p.7
 # c512b1p.0049
+# c512b1p.0077
+# c512b1p.025
 # c512b1p.05
 # c512b1p.7
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'b1p2_Aug_Burk/'
+spec_loc = 'c512b1p.0077/'
 
 # Create a variable that controls whether the line of sight is assumed to be
 # along the x, y or z axis of the data cube when constructing the synchrotron
@@ -67,21 +71,21 @@ gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
  
 # Open the FITS file that contains the x-component of the simulated magnetic
 # field
-mag_x_fits = fits.open(data_loc + 'bx_b1p2_slow.fits')
+mag_x_fits = fits.open(data_loc + 'magx.fits')
 
 # Extract the data for the simulated x-component of the magnetic field
 mag_x_data = mag_x_fits[0].data
 
 # Open the FITS file that contains the y-component of the simulated magnetic 
 # field
-mag_y_fits = fits.open(data_loc + 'by_b1p2_slow.fits')
+mag_y_fits = fits.open(data_loc + 'magy.fits')
 
 # Extract the data for the simulated y-component of the magnetic field
 mag_y_data = mag_y_fits[0].data
 
 # Open the FITS file that contains the z-component of the simulated magnetic 
 # field
-mag_z_fits = fits.open(data_loc + 'bz_b1p2_slow.fits')
+mag_z_fits = fits.open(data_loc + 'magz.fits')
 
 # Extract the data for the simulated z-component of the magnetic field
 mag_z_data = mag_z_fits[0].data
@@ -191,7 +195,7 @@ pri_hdu.header['CTYPE3'] = 'Gamma   '
 
 # Save the produced synchrotron maps as a FITS file
 mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4' +\
- line_o_sight + '_slow' + '.fits')
+ line_o_sight + '.fits')
 
 # Print a message to state that the FITS file was saved successfully
 print 'FITS file of synchrotron maps saved successfully'

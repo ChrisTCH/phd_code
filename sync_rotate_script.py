@@ -4,8 +4,9 @@
 # field strengths, and calculates the observed synchrotron emission maps for a #
 # cube that is saturated with a uniform, isotropic distribution of cosmic rays #
 # with power spectrum index gamma. Various values of gamma are used, and the   #
-# angle that the line of sight makes relative to the z axis of the cube can be #
-# altered. The produced maps are stored in a FITS file. 					   #
+# angles that the line of sight makes relative to the z axis of the cube can   #
+# be altered. The produced maps are stored in FITS files, one for each         #
+# rotation angle.                                        					   #
 #                                                                              #
 # Author: Chris Herron                                                         #
 # Start Date: 4/11/2014                                                        #
@@ -36,15 +37,19 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # b1p.01_Oct_Burk
 # b1p2_Aug_Burk
 # c512b.1p.0049
+# c512b.1p.0077
+# c512b.1p.025
 # c512b.1p.05
 # c512b.1p.7
 # c512b1p.0049
+# c512b1p.0077
+# c512b1p.025
 # c512b1p.05
 # c512b1p.7
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'fractal_data/'
+spec_loc = 'c512b5p.01/'
 
 # # Create a variable that controls the angle between the line of sight and the
 # # z axis of the data cube. This needs to be a decimal. The rotation from the
@@ -60,40 +65,40 @@ gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
 
 # ------ Use this code to test with fractal data
 
-# Create a cube of fractal data, which is meant to represent the x component
-# of the magnetic field. 5.0 is added to give a mean field in the x direction.
-mag_x_data = fractalcube(3.0, seed = 6, size = 512) + 5.0
+# # Create a cube of fractal data, which is meant to represent the x component
+# # of the magnetic field. 5.0 is added to give a mean field in the x direction.
+# mag_x_data = fractalcube(3.0, seed = 6, size = 512) + 5.0
 
-# Create a cube of fractal data, which is meant to represent the y component 
-# of the magnetic field
-mag_y_data = fractalcube(3.0, seed = 8, size = 512)
+# # Create a cube of fractal data, which is meant to represent the y component 
+# # of the magnetic field
+# mag_y_data = fractalcube(3.0, seed = 8, size = 512)
 
-# Create a cube of fractal data, which is meant to represent the z component 
-# of the magnetic field
-mag_z_data = fractalcube(3.0, seed = 10, size = 512)
+# # Create a cube of fractal data, which is meant to represent the z component 
+# # of the magnetic field
+# mag_z_data = fractalcube(3.0, seed = 10, size = 512)
 
 # ------ End fractal data generation
 
-# # Open the FITS file that contains the x-component of the simulated magnetic
-# # field
-# mag_x_fits = fits.open(data_loc + 'bx_b1p2_alf.fits')
+# Open the FITS file that contains the x-component of the simulated magnetic
+# field
+mag_x_fits = fits.open(data_loc + 'magx.fits')
 
-# # Extract the data for the simulated x-component of the magnetic field
-# mag_x_data = mag_x_fits[0].data
+# Extract the data for the simulated x-component of the magnetic field
+mag_x_data = mag_x_fits[0].data
 
-# # Open the FITS file that contains the y-component of the simulated magnetic 
-# # field
-# mag_y_fits = fits.open(data_loc + 'by_b1p2_alf.fits')
+# Open the FITS file that contains the y-component of the simulated magnetic 
+# field
+mag_y_fits = fits.open(data_loc + 'magy.fits')
 
-# # Extract the data for the simulated y-component of the magnetic field
-# mag_y_data = mag_y_fits[0].data
+# Extract the data for the simulated y-component of the magnetic field
+mag_y_data = mag_y_fits[0].data
 
-# # Open the FITS file that contains the z-component of the simulated magnetic 
-# # field
-# mag_z_fits = fits.open(data_loc + 'bz_b1p2_alf.fits')
+# Open the FITS file that contains the z-component of the simulated magnetic 
+# field
+mag_z_fits = fits.open(data_loc + 'magz.fits')
 
-# # Extract the data for the simulated z-component of the magnetic field
-# mag_z_data = mag_z_fits[0].data
+# Extract the data for the simulated z-component of the magnetic field
+mag_z_data = mag_z_fits[0].data
 
 # Print a message to the screen to show that the data has been loaded
 print 'Magnetic field components loaded successfully'
@@ -220,7 +225,7 @@ for j in range(len(rad_angle_arr)):
 
 	# Save the produced synchrotron maps as a FITS file
 	mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4_' +\
-	 '{}_frac'.format(rot_ang_arr[j]) + '.fits')
+	 'rot_{}'.format(rot_ang_arr[j]) + '.fits')
 
 	# Print a message to state that the FITS file was saved successfully
 	print 'FITS file of synchrotron maps saved successfully'
