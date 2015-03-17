@@ -41,15 +41,19 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # b1p.01_Oct_Burk
 # b1p2_Aug_Burk
 # c512b.1p.0049
+# c512b.1p.0077
+# c512b.1p.025
 # c512b.1p.05
 # c512b.1p.7
 # c512b1p.0049
+# c512b1p.0077
+# c512b1p.025
 # c512b1p.05
 # c512b1p.7
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'c512b5p2/'
+spec_loc = 'c512b1p.025/'
 
 # Create a string for the full directory path to use in calculations
 data_loc =  simul_loc + spec_loc
@@ -102,7 +106,7 @@ for i in range(sync_shape[0]):
 
 	# Radially average the calculated 2D correlation function, using the 
 	# specified number of bins
-	rad_corr = sfr(corr, num_bins)
+	rad_corr = sfr(corr, num_bins, verbose = False)
 
 	# Calculate the square of the mean of the synchrotron intensity values
 	sync_sq_mean = np.power( np.mean(sync_data[i], dtype = np.float64), 2.0 )

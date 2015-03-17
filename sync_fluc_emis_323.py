@@ -42,15 +42,19 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # b1p.01_Oct_Burk
 # b1p2_Aug_Burk
 # c512b.1p.0049
+# c512b.1p.0077
+# c512b.1p.025
 # c512b.1p.05
 # c512b.1p.7
 # c512b1p.0049
+# c512b1p.0077
+# c512b1p.025
 # c512b1p.05
 # c512b1p.7
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'b1p2_Aug_Burk/'
+spec_loc = 'c512b5p.01/'
 
 # Create a string for the full directory path to use in calculations
 data_loc =  simul_loc + spec_loc
@@ -132,7 +136,7 @@ for i in range(len(gamma_arr)):
 
 	# Calculate the radially averaged correlation function for the perpendicular
 	# component of the magnetic field, raised to the power of gamma
-	perp_gamma_rad_corr = sfr(perp_gamma_corr, num_bins)
+	perp_gamma_rad_corr = sfr(perp_gamma_corr, num_bins, verbose = False)
 
 	# Calculate the normalised correlation function for the magnetic field
 	# perpendicular to the line of sight, for gamma. This is the right hand

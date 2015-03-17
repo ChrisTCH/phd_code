@@ -39,15 +39,19 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # b1p.01_Oct_Burk
 # b1p2_Aug_Burk
 # c512b.1p.0049
+# c512b.1p.0077
+# c512b.1p.025
 # c512b.1p.05
 # c512b.1p.7
 # c512b1p.0049
+# c512b1p.0077
+# c512b1p.025
 # c512b1p.05
 # c512b1p.7
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'b1p.01_Oct_Burk/'
+spec_loc = 'c512b3p.01/'
 
 # Create a string for the full directory path to use in calculations
 data_loc =  simul_loc + spec_loc
@@ -103,7 +107,7 @@ print 'Correlation function of the x-component of the magnetic field calculated'
 
 # Calculate the radially averaged correlation function for the x-component
 # of the magnetic field
-x_rad_av_corr = sfr(x_corr, num_bins)
+x_rad_av_corr = sfr(x_corr, num_bins, verbose = False)
 
 # Extract the radius values used to calculate the radially averaged 
 # correlation function
@@ -129,7 +133,7 @@ print 'Correlation function of the y-component of the magnetic field calculated'
 
 # Calculate the radially averaged correlation function for the y-component
 # of the magnetic field
-y_rad_av_corr = sfr(y_corr, num_bins)
+y_rad_av_corr = sfr(y_corr, num_bins, verbose = False)
 
 # Calculate the normalised radially averaged correlation function for the 
 # y-component of the magnetic field. This is equation 14 of Lazarian and
@@ -273,7 +277,7 @@ print 'Correlation function of the perpendicular component of the magnetic'\
 
 # Calculate the radially averaged correlation function for the perpendicular
 # component of the magnetic field, raised to the power of gamma = 2
-perp_gamma_2_rad_corr = (sfr(perp_gamma_2_corr, num_bins))[1]
+perp_gamma_2_rad_corr = (sfr(perp_gamma_2_corr, num_bins, verbose = False))[1]
 
 # Calculate the normalised correlation function for the magnetic field
 # perpendicular to the line of sight, for gamma = 2. This is the left hand
@@ -314,7 +318,7 @@ print 'Correlation function of the perpendicular component of the magnetic'\
 
 # Calculate the radially averaged correlation function for the perpendicular
 # component of the magnetic field, raised to the power of gamma = 4
-perp_gamma_4_rad_corr = (sfr(perp_gamma_4_corr, num_bins))[1]
+perp_gamma_4_rad_corr = (sfr(perp_gamma_4_corr, num_bins, verbose = False))[1]
 
 # Calculate the normalised correlation function for the magnetic field
 # perpendicular to the line of sight, for gamma = 4. This is the left hand

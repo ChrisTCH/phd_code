@@ -3,12 +3,15 @@
 # This piece of code describes a function which receives arrays of the        #
 # partial derivatives of Stokes Q and U with respect to the x and y axes, and #
 # produces an array of the angle of the polarisation gradient with respect to #
-# the x axis at each pixel.                                                   #
+# the x axis at each pixel, measured counter-clockwise.                       #
 # The formula for the calculation of angle of the polarisation gradient is    #
 # the same as that in Gaensler et al 2011, Nature 478.                        #
 #                                                                             #
 # Author: Chris Herron                                                        #
+# Email: cher7851@uni.sydney.edu.au                                           #
 # Start Date: 10/6/2014                                                       #
+# To be published as Herron et al (in prep), please contact before using in   #
+# any publications, and do not distribute without permission.                 #
 #                                                                             #
 #-----------------------------------------------------------------------------#
 
@@ -25,7 +28,7 @@ def calc_Ang_Grad(dQ_dy = None, dQ_dx = None, dU_dy = None, dU_dx = None):
         respect to the x axis at each point of an image, when given the first
         derivatives of the Stokes Q or U values with respect to the x and y 
         axes for the image. The formula used for the calculation is given in
-        Gaensler et al 2011, Nature 478.
+        Gaensler et al 2011, Nature 478. The angle is measured counter-clockwise
         
     Required Input
         dQ_dy, dQ_dx - Partial derivatives of Stokes Q with respect to the
