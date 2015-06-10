@@ -364,7 +364,7 @@ for i in range(len(high_B_sims)):
 	plt.plot(rel_ang_arr, kurt_high_arr[i], '-o')
 
 # Add a label to the x-axis
-plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B', ha = 'center', \
+plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B [degrees]', ha = 'center', \
 	va = 'bottom', fontsize = 20)
 
 # Add some text to the figure, to label the left plot as figure a
@@ -425,7 +425,7 @@ for i in range(len(high_B_sims)):
 	plt.plot(rel_ang_arr, sf_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
 
 # Add a label to the x-axis
-plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B', ha = 'center', \
+plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B [degrees]', ha = 'center', \
 	va = 'bottom', fontsize = 20)
 
 # Force the legend to appear on the plot
@@ -487,7 +487,7 @@ for i in range(len(high_B_sims)):
 plt.setp( ax2.get_yticklabels(), visible=False)
 
 # Add a label to the x-axis
-plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B', ha = 'center', \
+plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B [degrees]', ha = 'center', \
 	va = 'bottom', fontsize = 20)
 
 # Force the legend to appear on the plot

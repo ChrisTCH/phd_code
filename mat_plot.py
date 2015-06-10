@@ -139,7 +139,7 @@ vmax = None, origin = 'lower', xlabel = '', ylabel = '', title = ''):
     plt.savefig(filename, format = format)
     
     # Print a message to the screen saying that the image was created
-    print filename + ' created successfully.\n'
+    #print filename + ' created successfully.\n'
     
     # Close the figure to free up memory
     plt.close()

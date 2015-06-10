@@ -3,14 +3,15 @@
 # This code is a Python script that reads in arrays of simulated synchrotron   #
 # intensities, and calculates the skewness, kurtosis, radially averaged        #
 # structure function, and quadrupole/monopole ratio of synchrotron intensity   #
-# maps that are influenced by observational effects. Each of these quantities  #
-# is plotted against the sonic and Alfvenic Mach numbers, to see which         #
-# quantities are sensitive tracers of the sonic and Alfvenic Mach numbers.     #
-# Quantities are also plotted against the free parameters of the observational #
-# effects, to directly show how observations affect measured statistics.       #
+# maps that are influenced by noise and angular resolution. The angular        #
+# resolution is set to a fixed value, and the noise is allowed to vary. Each   #
+# of these quantities is plotted against the sonic and Alfvenic Mach numbers,  #
+# to see which quantities are sensitive tracers of the sonic and Alfvenic Mach #
+# numbers. Quantities are also plotted against the noise level, to directly    #
+# show how observations affect measured statistics.                            #
 #                                                                              #
 # Author: Chris Herron                                                         #
-# Start Date: 12/12/2014                                                       #
+# Start Date: 5/5/2015                                                         #
 #                                                                              #
 #------------------------------------------------------------------------------#
 
@@ -131,78 +132,53 @@ gam_index = 2
 # Create a variable that just holds the value of gamma being used
 gamma = gamma_arr[gam_index]
 
-# Create a string that determines what observational effect will be studied
-# String can be one of the following:
-# spec - Study how statistics change as spectral resolution is varied
-# noise - Study how statistics change as noise level is varied
-# res - Study how statistics change as the spatial resolution is varied
-obs_effect = 'res'
-
 # Create a variable that controls how many data points are being used for the
-# free parameter
-free_num = 50
+# noise
+free_num = 25
 
-# Create a variable that controls how many sub-channels are used if we are 
-# studying the effect of spectral resolution.
-sub_channels = 50
+# Create an array of values that will be used to determine the standard
+# deviation of the Gaussian distribution from which noise values are 
+# generated. The standard deviation will be calculated by multiplying the
+# median synchrotron intensity by the values in this array.
+iter_array = np.linspace(0.01, 0.5, free_num)
 
-# Depending on what observational effect is being studied, create an array of 
-# values over which we will iterate. This array represents the values of the 
-# free parameter related to the observational effect 
-if obs_effect == 'spec':
-	# Create an array of spectral channel width values (in MHz), over which
-	# to iterate. Each value represents the width of a spectral channel that 
-	# is centred on 1.4 GHz.
-	iter_array = np.linspace(1, 300, free_num)
+# Create an array that will hold the values for the noise level of the final
+# synchrotron maps produced, in the same units as the generated noise. 
+# Each row corresponds to a value of the free parameter, and each column 
+# corresponds to a simulation. There is one array for a line of sight along the 
+# z axis, and another for a line of sight along the x axis.
+final_noise_z = np.zeros((len(iter_array),len(simul_arr)))
+final_noise_x = np.zeros((len(iter_array),len(simul_arr)))
 
-	# Create a label for the x-axis of plots that are made against spectral
-	# channel width
-	xlabel = 'Spectral Resolution [MHz]'
+# Create a label for the x-axis of plots that are made against noise
+# standard deviation
+xlabel = 'Noise StandDev [frac median inten]'
 
-	# Create a string to be used in the titles of any plots that are made 
-	# against spectral channel width
-	title_string = 'Spectral Resolution'
+# Create a string to be used in the titles of any plots that are made 
+# against noise standard deviation. This needs to be different for the cases
+# where we plot against the initial or final noise level
 
-	# Create a string to be used in legends involving spectral channel width
-	leg_string = 'SpecRes = ' 
-elif obs_effect == 'noise':
-	# Create an array of values that will be used to determine the standard
-	# deviation of the Gaussian distribution from which noise values are 
-	# generated. The standard deviation will be calculated by multiplying the
-	# median synchrotron intensity by the values in this array.
-	iter_array = np.linspace(0.01, 0.5, free_num)
+# Create a string saying we use the initial noise level
+title_string = 'Init Noise StandDev'
 
-	# Create a label for the x-axis of plots that are made against noise
-	# standard deviation
-	xlabel = 'Noise StandDev [perc median inten]'
+# Create a string saying we use the final noise level
+final_title_string = 'Final Noise StandDev'
 
-	# Create a string to be used in the titles of any plots that are made 
-	# against noise standard deviation
-	title_string = 'Noise StandDev'
+# Create a string to be used in legends involving spectral channel width
+leg_string = 'Noise = ' 
 
-	# Create a string to be used in legends involving spectral channel width
-	leg_string = 'Noise = ' 
-elif obs_effect == 'res':
-	# Create an array of values that represent the standard deviation of the 
-	# Gaussian used to smooth the synchrotron maps. All values are in pixels.
-	iter_array = np.linspace(1.0, 50.0, free_num)
+# Create a variable that represents the standard deviation of the 
+# Gaussian used to smooth the synchrotron maps. Value is in pixels.
+smooth_stdev = 3
 
-	# Create an array of values representing the final angular resolution of
-	# the image after smoothing. The final resolution is calculated by 
-	# quadrature from the initial resolution (1 pixel) and the standard 
-	# deviation of the convolving Gaussian.
-	final_res = np.sqrt(1.0 + np.power(iter_array,2.0))
+# Create a variable representing the final angular resolution of
+# the image after smoothing. The final resolution is calculated by 
+# quadrature from the initial resolution (1 pixel) and the standard 
+# deviation of the convolving Gaussian.
+final_res = np.sqrt(1.0 + np.power(smooth_stdev,2.0))
 
-	# Create a label for the x-axis of plots that are made against angular 
-	# resolution
-	xlabel = 'Angular Resolution [pixels]'
-
-	# Create a string to be used in the titles of any plots that are made 
-	# against angular resolution
-	title_string = 'Angular Resolution'
-
-	# Create a string to be used in legends involving angular resolution
-	leg_string = 'AngRes = ' 
+# Create a string to be used in legends involving angular resolution
+leg_string_ang = 'AngRes = ' 
 
 # Create an empty array, where each entry specifies the calculated skewness of
 # the synchrotron intensity image of the corresponding simulation for a 
@@ -254,16 +230,6 @@ residual_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 int_quad_z_arr = np.zeros((len(iter_array),len(simul_arr)))
 int_quad_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 
-# Create an empty array, where each entry specifies the calculated magnitude of 
-# the quadrupole/monopole ratio of the synchrotron intensity image at a 
-# particular radial separation, for the corresponding simulation, for a 
-# particular value of the free parameter related to the observational effect 
-# being studied. Each row corresponds to a value of the free parameter, and each
-# column corresponds to a simulation. There is one array for a line of sight 
-# along the z axis, and another for a line of sight along the x axis.
-quad_point_z_arr = np.zeros((len(iter_array),len(simul_arr)))
-quad_point_x_arr = np.zeros((len(iter_array),len(simul_arr)))
-
 # Create a new string representing the directory in which all plots should
 # be saved
 save_loc = simul_loc + 'Ultimate_Output/'
@@ -295,11 +261,6 @@ for j in range(len(simul_arr)):
 	sync_map_z = sync_data_z[gam_index]
 	sync_map_x = sync_data_x[gam_index]
 
-	# Take into account an observing frequency of 1.4 GHz, by multiplying
-	# the extracted synchrotron maps by a gamma dependent frequency factor
-	sync_map_z_f = sync_map_z * np.power(1.4, -(gamma - 1))
-	sync_map_x_f = sync_map_x * np.power(1.4, -(gamma - 1))
-
 	# Print a message to the screen to show that the synchrotron data has been 
 	# loaded successfully
 	print 'Simulated synchrotron data loaded'
@@ -313,104 +274,70 @@ for j in range(len(simul_arr)):
 	sync_param_x = np.zeros((free_num, np.shape(sync_map_x)[0], \
 		np.shape(sync_map_x)[1]))
 
-	# Loop over the various values of the free parameter related to the 
-	# observational effect being studied, to calculate the various statistics
-	# for the synchrotron map observed for each value of the free parameter
-	for i in range(len(iter_array)):
-		# Check to see which observational effect is being studied
-		if obs_effect == 'spec':
-			# In this case, we are studying the effect of spectral resolution,
-			# so we start with an array of channel widths in MHz, and need to 
-			# convert this into the observing frequencies of sub-channels in
-			# GHz. 
+	# Take into account an observing frequency of 1.4 GHz, by multiplying
+	# the extracted synchrotron maps by a gamma dependent frequency factor
+	sync_map_z_f = sync_map_z * np.power(1.4, -(gamma - 1))
+	sync_map_x_f = sync_map_x * np.power(1.4, -(gamma - 1))
 
-			# Construct an array of the sub-channel locations in MHz, specified
-			# relative to the central observing frequency.
-			sub_channel_loc = np.linspace(-iter_array[i]/2.0, iter_array[i]/2.0\
-				, sub_channels)
+	# Loop over the various values of the noise, to calculate the various 
+	# statistics for the synchrotron map observed for each value of the noise
+	for i in range(len(iter_array)):			
+		# Calculate the standard deviation of the Gaussian noise that will 
+		# affect the synchrotron maps. This needs to be done individually 
+		# for lines of sight along the z and x axes, because of the lines of
+		# sight have different intensity maps.
+		noise_stdev_z = iter_array[i] * np.median(sync_map_z_f)
+		noise_stdev_x = iter_array[i] * np.median(sync_map_x_f)
 
-			# Construct an array of the sub-channel locations in GHz, then raise
-			# this to a power related to gamma. This is done so that the 
-			# produced synchrotron intensity maps scale correctly with frequency
-			sub_channel_GHz = np.power(1.4 + 1e-3 * sub_channel_loc,-(gamma- 1))
+		# Create an array of values that are randomly drawn from a Gaussian
+		# distribution with the specified standard deviation. This 
+		# represents the noise at each pixel of the image. 
+		noise_matrix_z = np.random.normal(scale = noise_stdev_z,\
+		 size = np.shape(sync_map_z))
+		noise_matrix_x = np.random.normal(scale = noise_stdev_x,\
+		 size = np.shape(sync_map_x))
 
-			# Construct a 3D array, where each slice gives the synchrotron map
-			# observed in that sub-channel. There is one array for a line of 
-			# sight along the z axis, and one for a line of sight along the x
-			# axis.
-			sync_maps_sub_chan_z = np.tile(sync_map_z, (sub_channels,1,1))\
-			 * np.transpose(np.tile(sub_channel_GHz, (np.shape(sync_map_z)[0]\
-			 	, np.shape(sync_map_z)[1], 1 )))
-			sync_maps_sub_chan_x = np.tile(sync_map_x, (sub_channels,1,1))\
-			 * np.transpose(np.tile(sub_channel_GHz, (np.shape(sync_map_x)[0]\
-			 	, np.shape(sync_map_x)[1], 1 )))
+		# Add the noise maps onto the synchrotron intensity maps, to produce
+		# the mock 'observed' maps
+		sync_map_free_param_z = sync_map_z_f + noise_matrix_z
+		sync_map_free_param_x = sync_map_x_f + noise_matrix_x
 
-			# Integrate the synchrotron maps measured in the sub-channels over
-			# frequency (the third axis, first index), and normalise by the 
-			# number of sub-channels used in the calculation. This is performed
-			# for lines of sight along the z and x axes
-			sync_map_free_param_z = np.mean(sync_maps_sub_chan_z, dtype = np.float64, axis = 0)
-			# np.trapz(sync_maps_sub_chan_z, dx = \
-			# 	sub_channel_GHz[1] - sub_channel_GHz[0],axis = 0) / sub_channels
-			sync_map_free_param_x = np.mean(sync_maps_sub_chan_x, dtype = np.float64, axis = 0)
-			# np.trapz(sync_maps_sub_chan_x, dx = \
-			# 	sub_channel_GHz[1] - sub_channel_GHz[0],axis = 0) / sub_channels
+		# Create a Gaussian kernel to use to smooth the synchrotron map,
+		# using the given standard deviation
+		gauss_kernel = Gaussian2DKernel(smooth_stdev)
 
-		elif obs_effect == 'noise':
-			# In this case, we are taking into account the effect of noise in
-			# the telescope. We start with an array of values that, when 
-			# multiplied by the median intensity of the synchrotron map, give
-			# the standard deviation of the Gaussian noise. 
+		# Smooth the synchrotron maps to the required resolution by 
+		# convolution with the above Gaussian kernel.
+		sync_map_free_param_z = convolve_fft(sync_map_free_param_z,\
+		 gauss_kernel, boundary = 'wrap')
+		sync_map_free_param_x = convolve_fft(sync_map_free_param_x,\
+		 gauss_kernel, boundary = 'wrap')
 
-			# Calculate the standard deviation of the Gaussian noise that will 
-			# affect the synchrotron maps. This needs to be done individually 
-			# for lines of sight along the z and x axes, because of the lines of
-			# sight have different intensity maps.
-			noise_stdev_z = iter_array[i] * np.median(sync_map_z_f)
-			noise_stdev_x = iter_array[i] * np.median(sync_map_x_f)
+		# To plot against the final noise level, we need to perform some 
+		# additional calculations
+		
+		# Start by smoothing the initial synchrotron intensity map to
+		# the required resolution. (No noise added)
+		sync_map_z_no_noise = convolve_fft(sync_map_z_f,\
+		 gauss_kernel, boundary = 'wrap')
+		sync_map_x_no_noise = convolve_fft(sync_map_x_f,\
+		 gauss_kernel, boundary = 'wrap')
 
-			# Create an array of values that are randomly drawn from a Gaussian
-			# distribution with the specified standard deviation. This 
-			# represents the noise at each pixel of the image. 
-			noise_matrix_z = np.random.normal(scale = noise_stdev_z,\
-			 size = np.shape(sync_map_z))
-			noise_matrix_x = np.random.normal(scale = noise_stdev_x,\
-			 size = np.shape(sync_map_x))
+		# Subtract this smoothed synchrotron map (with no noise) from the
+		# full map (noise added, then smoothed)
+		noise_map_z = sync_map_free_param_z - sync_map_z_no_noise
+		noise_map_x = sync_map_free_param_x - sync_map_x_no_noise
 
-			# Add the noise maps onto the synchrotron intensity maps, to produce
-			# the mock 'observed' maps
-			sync_map_free_param_z = sync_map_z_f + noise_matrix_z
-			sync_map_free_param_x = sync_map_x_f + noise_matrix_x
+		# Calculate the standard deviation of the noise (in same units as
+		# the intensity)
+		stdev_final_noise_z = np.std(noise_map_z)
+		stdev_final_noise_x = np.std(noise_map_x)
 
-		elif obs_effect == 'res':
-			# In this case, we are taking into account the effect of spatial 
-			# resolution. We start with an array of values that specifies the
-			# standard deviation of the Gaussian to be used to smooth the data.
-
-			# Create a Gaussian kernel to use to smooth the synchrotron map,
-			# using the given standard deviation
-			gauss_kernel = Gaussian2DKernel(iter_array[i])
-
-			# Smooth the synchrotron maps to the required resolution by 
-			# convolution with the above Gaussian kernel.
-			sync_map_free_param_z = convolve_fft(sync_map_z_f, gauss_kernel, boundary = 'wrap')
-			sync_map_free_param_x = convolve_fft(sync_map_x_f, gauss_kernel, boundary = 'wrap')
-
-			# # Create empty arrays that will contain the final smoothed image.
-			# # This step is required to ensure that the smooth is as accurate as
-			# # possible
-			# sync_map_free_param_z = np.zeros(np.shape(sync_map_z), dtype =\
-			#  np.float64)
-			# sync_map_free_param_x = np.zeros(np.shape(sync_map_x), dtype =\
-			#  np.float64)
-
-			# # Smooth the synchrotron maps to the required resolution by 
-			# # convolution. The results for lines of sight along the z and x axes
-			# # are automatically stored in the arrays that were created.
-			# ndimage.filters.gaussian_filter(sync_map_z,\
-			# 	sigma = iter_array[i], output = sync_map_free_param_z)
-			# ndimage.filters.gaussian_filter(sync_map_x,\
-			# 	sigma = iter_array[i], output = sync_map_free_param_x)
+		# Express the calculated standard deviation as a fraction of the 
+		# median synchrotron intensity of the map, and store the value in
+		# the corresponding matrix
+		final_noise_z[i,j] = stdev_final_noise_z / np.median(sync_map_z_f)
+		final_noise_x[i,j] = stdev_final_noise_x / np.median(sync_map_x_f)
 
 		# Now that the synchrotron map has been produced for this value of the
 		# free parameter, store it in the array that will hold all of the
@@ -505,13 +432,6 @@ for j in range(len(simul_arr)):
 		quad_mod_z, quad_arg_z, quad_rad_z = calc_quad_ratio(norm_strfn_z, num_bins)
 		quad_mod_x, quad_arg_x, quad_rad_x = calc_quad_ratio(norm_strfn_x, num_bins)
 
-		# Find the value of the magnitude of the quadrupole/monopole ratio for a
-		# radial separation that is one third of the way along the radial 
-		# separation range that is probed, and store it in the corresponding 
-		# array. This is done for lines of sight along the x and z axes.
-		quad_point_z_arr[i,j] = quad_mod_z[np.floor(num_bins/3.0)]
-		quad_point_x_arr[i,j] = quad_mod_x[np.floor(num_bins/3.0)]
-
 		# Integrate the magnitude of the quadrupole/monopole ratio from one 
 		# sixth of the way along the radial separation bins, until three 
 		# quarters of the way along the radial separation bins. This integration
@@ -531,21 +451,16 @@ for j in range(len(simul_arr)):
 		# At this point, all of the statistics that need to be calculated for
 		# every value of gamma have been calculated.
 
-	# Convert the arrays that show the synchrotron map for each value of the 
-	# free parameter into a FITS file, and save it.
-	mat2FITS_Image(sync_param_z, filename = save_loc + short_simul[j] + '_' + obs_effect + '_z.fits')
-	mat2FITS_Image(sync_param_x, filename = save_loc + short_simul[j] + '_' + obs_effect + '_x.fits')
+	# # Convert the arrays that show the synchrotron map for each value of the 
+	# # free parameter into a FITS file, and save it.
+	# mat2FITS_Image(sync_param_z, filename = save_loc + short_simul[j] +\
+	#  'gam{}_z_fin.fits'.format(gamma))
+	# mat2FITS_Image(sync_param_x, filename = save_loc + short_simul[j] +\
+	#  'gam{}_x_fin.fits'.format(gamma))
 
 	# Close the fits files, to save memory
 	sync_fits_z.close()
 	sync_fits_x.close()
-
-# If we are examining the effect of angular resolution, then change the array
-# of smoothing radii to the final resolutions
-if obs_effect == 'res':
-	# Replace the array of standard deviations with the array of final
-	# resolutions, so that the final resolutions are used in all plots
-	iter_array = final_res
 
 # When the code reaches this point, the statistics have been calculated for
 # every simulation and every value of gamma, so it is time to start plotting
@@ -569,7 +484,7 @@ plt.plot(sonic_mach_sort, (skew_z_arr[0])[sonic_sort],'b-o',label = leg_string\
 plt.plot(sonic_mach_sort, (skew_z_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (skew_z_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -578,13 +493,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs Sonic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Skew vs Sonic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_sonic_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_sonic_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -610,7 +525,7 @@ plt.plot(alf_mach_sort, (skew_z_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (skew_z_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (skew_z_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -619,13 +534,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs Alfvenic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Skew vs Alfvenic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_alf_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_alf_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -661,7 +576,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs ' + title_string + ' b.1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Skew vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box3 = ax3.get_position()
@@ -671,7 +587,7 @@ ax3.set_position([box3.x0, box3.y0, box3.width * 0.8, box3.height])
 ax3.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_{}_b.1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_b.1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the observational effect has been saved
@@ -707,7 +623,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs ' + title_string + ' b1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Skew vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res, gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box4 = ax4.get_position()
@@ -717,7 +634,7 @@ ax4.set_position([box4.x0, box4.y0, box4.width * 0.8, box4.height])
 ax4.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_{}_b1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_b1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the observational effect has been saved
@@ -745,7 +662,7 @@ plt.plot(sonic_mach_sort, (skew_x_arr[0])[sonic_sort],'b-o',label = leg_string\
 plt.plot(sonic_mach_sort, (skew_x_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (skew_x_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -754,13 +671,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs Sonic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Skew vs Sonic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_sonic_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_sonic_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -786,7 +703,7 @@ plt.plot(alf_mach_sort, (skew_x_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (skew_x_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (skew_x_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -795,13 +712,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs Alfvenic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Skew vs Alfvenic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_alf_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_alf_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -837,7 +754,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs ' + title_string + ' b.1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Skew vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box7 = ax7.get_position()
@@ -847,7 +765,7 @@ ax7.set_position([box7.x0, box7.y0, box7.width * 0.8, box7.height])
 ax7.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_{}_b.1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_b.1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the observational effect has been saved
@@ -883,7 +801,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Skew vs ' + title_string + ' b1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Skew vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box8 = ax8.get_position()
@@ -893,7 +812,7 @@ ax8.set_position([box8.x0, box8.y0, box8.width * 0.8, box8.height])
 ax8.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Skew_{}_b1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_b1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
 # function of the observational effect has been saved
@@ -921,7 +840,7 @@ plt.plot(sonic_mach_sort, (kurt_z_arr[0])[sonic_sort],'b-o',label = leg_string\
 plt.plot(sonic_mach_sort, (kurt_z_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (kurt_z_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -930,13 +849,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs Sonic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Kurt vs Sonic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_sonic_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_sonic_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -962,7 +881,7 @@ plt.plot(alf_mach_sort, (kurt_z_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (kurt_z_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (kurt_z_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -971,13 +890,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs Alfvenic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Kurt vs Alfvenic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_alf_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_alf_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -1013,7 +932,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs ' + title_string + ' b.1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Kurt vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box11 = ax11.get_position()
@@ -1023,7 +943,7 @@ ax11.set_position([box11.x0, box11.y0, box11.width * 0.8, box11.height])
 ax11.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_{}_b.1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_b.1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the observational effect has been saved
@@ -1059,7 +979,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs ' + title_string + ' b1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Kurt vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box12 = ax12.get_position()
@@ -1069,7 +990,7 @@ ax12.set_position([box12.x0, box12.y0, box12.width * 0.8, box12.height])
 ax12.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_{}_b1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_b1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the observational effect has been saved
@@ -1097,7 +1018,7 @@ plt.plot(sonic_mach_sort, (kurt_x_arr[0])[sonic_sort],'b-o',label = leg_string\
 plt.plot(sonic_mach_sort, (kurt_x_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (kurt_x_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -1106,13 +1027,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs Sonic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Kurt vs Sonic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_sonic_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_sonic_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -1138,7 +1059,7 @@ plt.plot(alf_mach_sort, (kurt_x_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (kurt_x_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (kurt_x_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -1147,13 +1068,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs Alfvenic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Kurt vs Alfvenic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_alf_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_alf_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -1189,7 +1110,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs ' + title_string + ' b.1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Kurt vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box15 = ax15.get_position()
@@ -1199,7 +1121,7 @@ ax15.set_position([box15.x0, box15.y0, box15.width * 0.8, box15.height])
 ax15.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_{}_b.1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_b.1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the observational effect has been saved
@@ -1235,7 +1157,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Kurt vs ' + title_string + ' b1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Kurt vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box16 = ax16.get_position()
@@ -1245,7 +1168,7 @@ ax16.set_position([box16.x0, box16.y0, box16.width * 0.8, box16.height])
 ax16.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'Kurt_{}_b1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_b1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the observational effect has been saved
@@ -1273,7 +1196,7 @@ plt.plot(sonic_mach_sort, (m_z_arr[0])[sonic_sort],'b-o',label = leg_string\
 plt.plot(sonic_mach_sort, (m_z_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (m_z_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -1282,13 +1205,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs Sonic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs Sonic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_sonic_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_sonic_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -1314,7 +1237,7 @@ plt.plot(alf_mach_sort, (m_z_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (m_z_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (m_z_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -1323,13 +1246,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs Alfvenic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs Alfvenic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_alf_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_alf_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -1365,7 +1288,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs ' + title_string + ' b.1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res, gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box19 = ax19.get_position()
@@ -1375,7 +1299,7 @@ ax19.set_position([box19.x0, box19.y0, box19.width * 0.8, box19.height])
 ax19.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_{}_b.1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_b.1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the observational effect has been saved
@@ -1411,7 +1335,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs ' + title_string + ' b1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box20 = ax20.get_position()
@@ -1421,7 +1346,7 @@ ax20.set_position([box20.x0, box20.y0, box20.width * 0.8, box20.height])
 ax20.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_{}_b1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_b1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the observational effect has been saved
@@ -1449,7 +1374,7 @@ plt.plot(sonic_mach_sort, (m_x_arr[0])[sonic_sort],'b-o',label = leg_string\
 plt.plot(sonic_mach_sort, (m_x_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (m_x_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -1458,13 +1383,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs Sonic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs Sonic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_sonic_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_sonic_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -1490,7 +1415,7 @@ plt.plot(alf_mach_sort, (m_x_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (m_x_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (m_x_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -1499,13 +1424,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs Alfvenic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs Alfvenic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_alf_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_alf_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -1541,7 +1466,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs ' + title_string + ' b.1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box23 = ax23.get_position()
@@ -1551,7 +1477,7 @@ ax23.set_position([box23.x0, box23.y0, box23.width * 0.8, box23.height])
 ax23.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_{}_b.1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_b.1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the observational effect has been saved
@@ -1587,7 +1513,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('SF slope - 1', fontsize = 20)
 
 # Add a title to the plot
-plt.title('SF Slope vs ' + title_string + ' b1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('SF Slope vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box24 = ax24.get_position()
@@ -1597,7 +1524,7 @@ ax24.set_position([box24.x0, box24.y0, box24.width * 0.8, box24.height])
 ax24.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'm_{}_b1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'm_b1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the SF slope - 1 as a 
 # function of the observational effect has been saved
@@ -1625,7 +1552,7 @@ plt.plot(sonic_mach_sort, (residual_z_arr[0])[sonic_sort],'b-o',label = leg_stri
 plt.plot(sonic_mach_sort, (residual_z_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (residual_z_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -1634,13 +1561,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs Sonic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Residuals vs Sonic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_sonic_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_sonic_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -1666,7 +1593,7 @@ plt.plot(alf_mach_sort, (residual_z_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (residual_z_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (residual_z_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -1675,13 +1602,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs Alfvenic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Residuals vs Alfvenic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_alf_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_alf_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -1717,7 +1644,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs ' + title_string + ' b.1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Residuals vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box27 = ax27.get_position()
@@ -1727,7 +1655,7 @@ ax27.set_position([box27.x0, box27.y0, box27.width * 0.8, box27.height])
 ax27.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_{}_b.1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_b.1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the observational effect has been saved
@@ -1763,7 +1691,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs ' + title_string + ' b1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Residuals vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box28 = ax28.get_position()
@@ -1773,7 +1702,7 @@ ax28.set_position([box28.x0, box28.y0, box28.width * 0.8, box28.height])
 ax28.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_{}_b1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_b1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the observational effect has been saved
@@ -1801,7 +1730,7 @@ plt.plot(sonic_mach_sort, (residual_x_arr[0])[sonic_sort],'b-o',label = leg_stri
 plt.plot(sonic_mach_sort, (residual_x_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (residual_x_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -1810,13 +1739,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs Sonic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Residuals vs Sonic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_sonic_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_sonic_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -1842,7 +1771,7 @@ plt.plot(alf_mach_sort, (residual_x_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (residual_x_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (residual_x_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -1851,13 +1780,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs Alfvenic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Residuals vs Alfvenic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_alf_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_alf_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -1893,7 +1822,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs ' + title_string + ' b.1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Residuals vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box31 = ax31.get_position()
@@ -1903,7 +1833,7 @@ ax31.set_position([box31.x0, box31.y0, box31.width * 0.8, box31.height])
 ax31.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_{}_b.1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_b.1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the observational effect has been saved
@@ -1939,7 +1869,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Residuals', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Residuals vs ' + title_string + ' b1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Residuals vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box32 = ax32.get_position()
@@ -1949,7 +1880,7 @@ ax32.set_position([box32.x0, box32.y0, box32.width * 0.8, box32.height])
 ax32.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'residuals_{}_b1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'residuals_b1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the residuals as a 
 # function of the observational effect has been saved
@@ -1977,7 +1908,7 @@ plt.plot(sonic_mach_sort, (int_quad_z_arr[0])[sonic_sort],'b-o',label = leg_stri
 plt.plot(sonic_mach_sort, (int_quad_z_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (int_quad_z_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -1986,13 +1917,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs Sonic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs Sonic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_sonic_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_sonic_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -2019,7 +1950,7 @@ plt.plot(alf_mach_sort, (int_quad_z_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (int_quad_z_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (int_quad_z_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -2028,13 +1959,13 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs Alfvenic Mach Number Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs Alfvenic Ang{0:.2f} Gam{1} z'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_alf_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_alf_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -2070,7 +2001,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs ' + title_string + ' b.1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res, gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box35 = ax35.get_position()
@@ -2080,7 +2012,7 @@ ax35.set_position([box35.x0, box35.y0, box35.width * 0.8, box35.height])
 ax35.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_{}_b.1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_b.1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the observational effect has been saved
@@ -2116,7 +2048,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs ' + title_string + ' b1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box36 = ax36.get_position()
@@ -2126,7 +2059,7 @@ ax36.set_position([box36.x0, box36.y0, box36.width * 0.8, box36.height])
 ax36.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_{}_b1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_b1_gam{}_z.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the observational effect has been saved
@@ -2155,7 +2088,7 @@ plt.plot(sonic_mach_sort, (int_quad_x_arr[0])[sonic_sort],'b-o',label = leg_stri
 plt.plot(sonic_mach_sort, (int_quad_x_arr[free_num/2 - 1])[sonic_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(sonic_mach_sort, (int_quad_x_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -2164,13 +2097,13 @@ plt.xlabel('Sonic Mach Number', fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs Sonic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs Sonic Ang{0:.2f} Gam{1} x'.format(final_res,gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_sonic_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_sonic_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the sonic Mach number has been saved for this line of sight
@@ -2197,7 +2130,7 @@ plt.plot(alf_mach_sort, (int_quad_x_arr[0])[alf_sort],'b-o',label = leg_string\
 plt.plot(alf_mach_sort, (int_quad_x_arr[free_num/2 - 1])[alf_sort],'r-o',\
 	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
 plt.plot(alf_mach_sort, (int_quad_x_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
+	label = leg_string + '{0:.2f}'.format(iter_array[free_num - 1]))
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -2206,13 +2139,14 @@ plt.xlabel('Alfvenic Mach Number', fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs Alfvenic Mach Number Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs Alfvenic Ang{0:.2f} Gam{1} x'.format(\
+	final_res, gamma), fontsize = 20)
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2)
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_alf_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_alf_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the Alfvenic Mach number has been saved for this line of sight
@@ -2248,7 +2182,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs ' + title_string + ' b.1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs ' + title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box39 = ax39.get_position()
@@ -2258,7 +2193,7 @@ ax39.set_position([box39.x0, box39.y0, box39.width * 0.8, box39.height])
 ax39.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_{}_b.1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_b.1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the observational effect has been saved
@@ -2294,7 +2229,8 @@ plt.xlabel(xlabel, fontsize = 20)
 plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Int Mag quad/mono vs ' + title_string + ' b1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Int quad/mono vs ' + title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box40 = ax40.get_position()
@@ -2304,7 +2240,7 @@ ax40.set_position([box40.x0, box40.y0, box40.width * 0.8, box40.height])
 ax40.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'int_quad_{}_b1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'int_quad_b1_gam{}_x.png'.format(gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the integrated quad ratio as a 
 # function of the observational effect has been saved
@@ -2313,125 +2249,135 @@ print 'Plot of the integrated quad ratio as a function of observational effect s
 # Close the figure, now that it has been saved.
 plt.close()
 
-#---------------------- Magnitude Quad ratio at a point zLOS -------------------
+#-------------------------------------------------------------------------------
 
-# Magnitude Quad ratio at a point vs sonic Mach number
+#------------------------------- Final Noise Plots -----------------------------
 
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of sonic Mach number for all of the synchrotron maps, i.e.
-# for all values of the free parameter related to the observational effect being
-# studied.
-fig41 = plt.figure()
+#-------------------------------------------------------------------------------
+
+# Skewness vs Observational Effect - Low Magnetic Field - zLOS
+
+# Create a figure to display a plot of the skewness as a function of the
+# observational effect, for simulations with b = 0.1 
+fig41 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax41 = fig41.add_subplot(111)
 
-# Plot the magnitude of the quad ratio at a point as a function of sonic Mach 
-# number for various values of the free parameter related to the observational 
-# effect being studied
-plt.plot(sonic_mach_sort, (quad_point_z_arr[0])[sonic_sort],'b-o',label = leg_string\
-	+'{}'.format(iter_array[0]))
-plt.plot(sonic_mach_sort, (quad_point_z_arr[free_num/2 - 1])[sonic_sort],'r-o',\
-	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
-plt.plot(sonic_mach_sort, (quad_point_z_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
-
-# Add a label to the x-axis
-plt.xlabel('Sonic Mach Number', fontsize = 20)
-
-# Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_z\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
-
-# Add a title to the plot
-plt.title('Mag Quad/mono at point vs Sonic Mach Number Gam{} z'.format(gamma), fontsize = 20)
-
-# Force the legend to appear on the plot
-plt.legend(loc = 2)
-
-# Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_sonic_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
-
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
-# function of the sonic Mach number has been saved for this line of sight
-print 'Plot of the quad ratio at a point as a function of sonic Mach number saved, zLOS'
-
-# Close the figure, now that it has been saved.
-plt.close()
-
-# Magnitude Quad ratio at a point vs Alfvenic Mach number 
-
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of Alfvenic Mach number for all of the synchrotron maps, 
-# i.e. for all values of the free parameter related to the observational effect 
-# being studied.
-fig42 = plt.figure()
-
-# Create an axis for this figure
-ax42 = fig42.add_subplot(111)
-
-# Plot the magnitude of the quad ratio at a point as a function of Alfvenic Mach
-# number for various values of the free parameter related to the observational 
-# effect being studied.
-plt.plot(alf_mach_sort, (quad_point_z_arr[0])[alf_sort],'b-o',label = leg_string\
-	+'{}'.format(iter_array[0]))
-plt.plot(alf_mach_sort, (quad_point_z_arr[free_num/2 - 1])[alf_sort],'r-o',\
-	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
-plt.plot(alf_mach_sort, (quad_point_z_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
-
-# Add a label to the x-axis
-plt.xlabel('Alfvenic Mach Number', fontsize = 20)
-
-# Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_z\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
-
-# Add a title to the plot
-plt.title('Mag Quad/mono at point vs Alfvenic Mach Number Gam{} z'.format(gamma), fontsize = 20)
-
-# Force the legend to appear on the plot
-plt.legend(loc = 2)
-
-# Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_alf_{}_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
-
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
-# function of the Alfvenic Mach number has been saved for this line of sight
-print 'Plot of the quad ratio at a point as a function of Alfvenic Mach number saved, zLOS'
-
-# Close the figure, now that it has been saved.
-plt.close()
-
-# Magnitude Quad ratio at a point vs Observational Effect - Low Magnetic Field
-
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of the observational effect, for simulations with b = 0.1 
-fig43 = plt.figure(figsize = (10,6))
-
-# Create an axis for this figure
-ax43 = fig43.add_subplot(111)
-
-# Plot the magnitude of the quad ratio at a point as a function of the 
-# observational effect for simulations with b = 0.1
-plt.plot(iter_array, quad_point_z_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
-plt.plot(iter_array, quad_point_z_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
-plt.plot(iter_array, quad_point_z_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
-plt.plot(iter_array, quad_point_z_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
-plt.plot(iter_array, quad_point_z_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
-plt.plot(iter_array, quad_point_z_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
-plt.plot(iter_array, quad_point_z_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
-plt.plot(iter_array, quad_point_z_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+# Plot the skewness as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_z[:,0], skew_z_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_z[:,1], skew_z_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_z[:,2], skew_z_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_z[:,3], skew_z_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_z[:,4], skew_z_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_z[:,5], skew_z_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_z[:,6], skew_z_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_z[:,7], skew_z_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
 
 # Add a label to the x-axis
 plt.xlabel(xlabel, fontsize = 20)
 
 # Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_z\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
+plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Mag Quad/mono at point vs ' + title_string + ' b.1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Skew vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box41 = ax41.get_position()
+ax41.set_position([box41.x0, box41.y0, box41.width * 0.8, box41.height])
+
+# Force the legend to appear on the plot
+ax41.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'Skew_b.1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the skewness as a 
+# function of the observational effect has been saved
+print 'Plot of the skewness as a function of observational effect saved b=0.1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Skewness vs Observational Effect - High Magnetic Field - zLOS
+
+# Create a figure to display a plot of the skewness as a function of the
+# observational effect, for simulations with b = 1 
+fig42 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax42 = fig42.add_subplot(111)
+
+# Plot the skewness as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_z[:, 8], skew_z_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_z[:, 9], skew_z_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_z[:,10], skew_z_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_z[:,11], skew_z_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_z[:,12], skew_z_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_z[:,13], skew_z_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_z[:,14], skew_z_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_z[:,15], skew_z_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Skewness', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Skew vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res, gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box42 = ax42.get_position()
+ax42.set_position([box42.x0, box42.y0, box42.width * 0.8, box42.height])
+
+# Force the legend to appear on the plot
+ax42.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'Skew_b1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the skewness as a 
+# function of the observational effect has been saved
+print 'Plot of the skewness as a function of observational effect saved b=1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Skewness vs Observational Effect - Low Magnetic Field - xLOS
+
+# Create a figure to display a plot of the skewness as a function of the
+# observational effect, for simulations with b = 0.1 
+fig43 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax43 = fig43.add_subplot(111)
+
+# Plot the skewness as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_x[:,0], skew_x_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_x[:,1], skew_x_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_x[:,2], skew_x_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_x[:,3], skew_x_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_x[:,4], skew_x_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_x[:,5], skew_x_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_x[:,6], skew_x_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_x[:,7], skew_x_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Skewness', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Skew vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box43 = ax43.get_position()
@@ -2441,44 +2387,44 @@ ax43.set_position([box43.x0, box43.y0, box43.width * 0.8, box43.height])
 ax43.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_{}_b.1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_b.1_gam{}_x_fin.png'.format(gamma), format = 'png')
 
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
+# Print a message to the screen to show that the plot of the skewness as a 
 # function of the observational effect has been saved
-print 'Plot of the quad ratio at a point as a function of observational effect saved b=0.1, zLOS'
+print 'Plot of the skewness as a function of observational effect saved b=0.1, xLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()
 
-# Magnitude Quad ratio at a point vs Observational Effect - High Magnetic Field
+# Skewness vs Observational Effect - High Magnetic Field - xLOS
 
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of the observational effect, for simulations with b = 1 
+# Create a figure to display a plot of the skewness as a function of the
+# observational effect, for simulations with b = 1 
 fig44 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax44 = fig44.add_subplot(111)
 
-# Plot the magnitude of the quad ratio at a point as a function of the 
-# observational effect for simulations with b = 1
-plt.plot(iter_array, quad_point_z_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
-plt.plot(iter_array, quad_point_z_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
-plt.plot(iter_array, quad_point_z_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
-plt.plot(iter_array, quad_point_z_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
-plt.plot(iter_array, quad_point_z_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
-plt.plot(iter_array, quad_point_z_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
-plt.plot(iter_array, quad_point_z_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
-plt.plot(iter_array, quad_point_z_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+# Plot the skewness as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_x[:, 8], skew_x_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_x[:, 9], skew_x_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_x[:,10], skew_x_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_x[:,11], skew_x_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_x[:,12], skew_x_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_x[:,13], skew_x_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_x[:,14], skew_x_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_x[:,15], skew_x_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
 
 # Add a label to the x-axis
 plt.xlabel(xlabel, fontsize = 20)
 
 # Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_z\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
+plt.ylabel('Skewness', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Mag Quad/mono at point vs ' + title_string + ' b1 Gam{} z'.format(gamma), fontsize = 20)
+plt.title('Skew vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box44 = ax44.get_position()
@@ -2488,134 +2434,138 @@ ax44.set_position([box44.x0, box44.y0, box44.width * 0.8, box44.height])
 ax44.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_{}_b1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Skew_b1_gam{}_x_fin.png'.format(gamma), format = 'png')
 
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
+# Print a message to the screen to show that the plot of the skewness as a 
 # function of the observational effect has been saved
-print 'Plot of the quad ratio at a point as a function of observational effect saved b=1, zLOS'
+print 'Plot of the skewness as a function of observational effect saved b=1, xLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()
 
-#---------------------- Magnitude Quad ratio at a point xLOS -------------------
+# Kurtosis vs Observational Effect - Low Magnetic Field - zLOS
 
-# Magnitude of the quad ratio at a point vs sonic Mach number
-
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of sonic Mach number for all of the synchrotron maps, i.e.
-# for all values of the free parameter related to the observational effect being
-# studied.
-fig45 = plt.figure()
+# Create a figure to display a plot of the kurtosis as a function of the
+# observational effect, for simulations with b = 0.1 
+fig45 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax45 = fig45.add_subplot(111)
 
-# Plot the magnitude of the quad ratio at a point as a function of sonic Mach 
-# number for various values of the free parameter related to the observational 
-# effect being studied
-plt.plot(sonic_mach_sort, (quad_point_x_arr[0])[sonic_sort],'b-o',label = leg_string\
-	+'{}'.format(iter_array[0]))
-plt.plot(sonic_mach_sort, (quad_point_x_arr[free_num/2 - 1])[sonic_sort],'r-o',\
-	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
-plt.plot(sonic_mach_sort, (quad_point_x_arr[free_num - 1])[sonic_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
-
-# Add a label to the x-axis
-plt.xlabel('Sonic Mach Number', fontsize = 20)
-
-# Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_x\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
-
-# Add a title to the plot
-plt.title('Mag Quad/mono at point vs Sonic Mach Number Gam{} x'.format(gamma), fontsize = 20)
-
-# Force the legend to appear on the plot
-plt.legend(loc = 2)
-
-# Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_sonic_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
-
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
-# function of the sonic Mach number has been saved for this line of sight
-print 'Plot of the quad ratio at a point as a function of sonic Mach number saved, xLOS'
-
-# Close the figure, now that it has been saved.
-plt.close()
-
-# Magnitude of the Quad ratio at a point vs Alfvenic Mach number 
-
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of Alfvenic Mach number for all of the synchrotron maps, 
-# i.e. for all values of the free parameter related to the observational effect
-# being studied.
-fig46 = plt.figure()
-
-# Create an axis for this figure
-ax46 = fig46.add_subplot(111)
-
-# Plot the magnitude of the quad ratio at a point as a function of Alfvenic Mach
-# number for various values of the free parameter related to the observational 
-# effect being studied.
-plt.plot(alf_mach_sort, (quad_point_x_arr[0])[alf_sort],'b-o',label = leg_string\
-	+'{}'.format(iter_array[0]))
-plt.plot(alf_mach_sort, (quad_point_x_arr[free_num/2 - 1])[alf_sort],'r-o',\
-	label= leg_string +'{0:.2f}'.format(iter_array[free_num/2 - 1]))
-plt.plot(alf_mach_sort, (quad_point_x_arr[free_num - 1])[alf_sort],'c-o',\
-	label = leg_string + '{}'.format(iter_array[free_num - 1]))
-
-# Add a label to the x-axis
-plt.xlabel('Alfvenic Mach Number', fontsize = 20)
-
-# Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_x\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
-
-# Add a title to the plot
-plt.title('Mag Quad/mono at point vs Alfvenic Mach Number Gam{} x'.format(gamma), fontsize = 20)
-
-# Force the legend to appear on the plot
-plt.legend(loc = 2)
-
-# Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_alf_{}_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
-
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
-# function of the Alfvenic Mach number has been saved for this line of sight
-print 'Plot of the quad ratio at a point as a function of Alfvenic Mach number saved, xLOS'
-
-# Close the figure, now that it has been saved.
-plt.close()
-
-# Magnitude of Quad ratio at a point vs Observational Effect - Low Magnetic Field
-
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of the observational effect, for simulations with b = 0.1 
-fig47 = plt.figure(figsize = (10,6))
-
-# Create an axis for this figure
-ax47 = fig47.add_subplot(111)
-
-# Plot the magnitude of the quad ratio at a point as a function of the 
-# observational effect for simulations with b = 0.1
-plt.plot(iter_array, quad_point_x_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
-plt.plot(iter_array, quad_point_x_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
-plt.plot(iter_array, quad_point_x_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
-plt.plot(iter_array, quad_point_x_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
-plt.plot(iter_array, quad_point_x_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
-plt.plot(iter_array, quad_point_x_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
-plt.plot(iter_array, quad_point_x_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
-plt.plot(iter_array, quad_point_x_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+# Plot the kurtosis as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_z[:,0], kurt_z_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_z[:,1], kurt_z_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_z[:,2], kurt_z_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_z[:,3], kurt_z_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_z[:,4], kurt_z_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_z[:,5], kurt_z_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_z[:,6], kurt_z_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_z[:,7], kurt_z_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
 
 # Add a label to the x-axis
 plt.xlabel(xlabel, fontsize = 20)
 
 # Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_x\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
+plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Mag Quad/mono at point vs ' + title_string + ' b.1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Kurt vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box45 = ax45.get_position()
+ax45.set_position([box45.x0, box45.y0, box45.width * 0.8, box45.height])
+
+# Force the legend to appear on the plot
+ax45.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'Kurt_b.1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the kurtosis as a 
+# function of the observational effect has been saved
+print 'Plot of the kurtosis as a function of observational effect saved b=0.1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Kurtosis vs Observational Effect - High Magnetic Field - zLOS
+
+# Create a figure to display a plot of the kurtosis as a function of the
+# observational effect, for simulations with b = 1 
+fig46 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax46 = fig46.add_subplot(111)
+
+# Plot the kurtosis as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_z[:, 8], kurt_z_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_z[:, 9], kurt_z_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_z[:,10], kurt_z_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_z[:,11], kurt_z_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_z[:,12], kurt_z_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_z[:,13], kurt_z_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_z[:,14], kurt_z_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_z[:,15], kurt_z_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Kurtosis', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Kurt vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box46 = ax46.get_position()
+ax46.set_position([box46.x0, box46.y0, box46.width * 0.8, box46.height])
+
+# Force the legend to appear on the plot
+ax46.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'Kurt_b1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the kurtosis as a 
+# function of the observational effect has been saved
+print 'Plot of the kurtosis as a function of observational effect saved b=1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Kurtosis vs Observational Effect - Low Magnetic Field - xLOS
+
+# Create a figure to display a plot of the kurtosis as a function of the
+# observational effect, for simulations with b = 0.1 
+fig47 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax47 = fig47.add_subplot(111)
+
+# Plot the kurtosis as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_x[:,0], kurt_x_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_x[:,1], kurt_x_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_x[:,2], kurt_x_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_x[:,3], kurt_x_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_x[:,4], kurt_x_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_x[:,5], kurt_x_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_x[:,6], kurt_x_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_x[:,7], kurt_x_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Kurtosis', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Kurt vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box47 = ax47.get_position()
@@ -2625,44 +2575,44 @@ ax47.set_position([box47.x0, box47.y0, box47.width * 0.8, box47.height])
 ax47.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_{}_b.1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_b.1_gam{}_x_fin.png'.format(gamma), format = 'png')
 
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
+# Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the observational effect has been saved
-print 'Plot of the quad ratio at a point as a function of observational effect saved b=0.1, xLOS'
+print 'Plot of the kurtosis as a function of observational effect saved b=0.1, xLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()
 
-# Magnitude of Quad ratio at a point vs Observational Effect - High Magnetic Field
+# Kurtosis vs Observational Effect - High Magnetic Field - xLOS
 
-# Create a figure to display a plot of the magnitude of the quad ratio at a 
-# point as a function of the observational effect, for simulations with b = 1 
+# Create a figure to display a plot of the kurtosis as a function of the
+# observational effect, for simulations with b = 1 
 fig48 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax48 = fig48.add_subplot(111)
 
-# Plot the magnitude of the quad ratio at a point as a function of the 
-# observational effect for simulations with b = 1
-plt.plot(iter_array, quad_point_x_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
-plt.plot(iter_array, quad_point_x_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
-plt.plot(iter_array, quad_point_x_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
-plt.plot(iter_array, quad_point_x_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
-plt.plot(iter_array, quad_point_x_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
-plt.plot(iter_array, quad_point_x_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
-plt.plot(iter_array, quad_point_x_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
-plt.plot(iter_array, quad_point_x_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+# Plot the kurtosis as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_x[:, 8], kurt_x_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_x[:, 9], kurt_x_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_x[:,10], kurt_x_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_x[:,11], kurt_x_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_x[:,12], kurt_x_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_x[:,13], kurt_x_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_x[:,14], kurt_x_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_x[:,15], kurt_x_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
 
 # Add a label to the x-axis
 plt.xlabel(xlabel, fontsize = 20)
 
 # Add a label to the y-axis
-plt.ylabel('Mag Quad/mono at R = {0:.2f}'.format(quad_rad_x\
-	[np.floor(num_bins/3.0)]), fontsize = 20)
+plt.ylabel('Kurtosis', fontsize = 20)
 
 # Add a title to the plot
-plt.title('Mag Quad/mono at point vs ' + title_string + ' b1 Gam{} x'.format(gamma), fontsize = 20)
+plt.title('Kurt vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
 
 # Shrink the width of the plot axes
 box48 = ax48.get_position()
@@ -2672,11 +2622,575 @@ ax48.set_position([box48.x0, box48.y0, box48.width * 0.8, box48.height])
 ax48.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
 # Save the figure using the given filename and format
-plt.savefig(save_loc + 'quad_point_{}_b1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
+plt.savefig(save_loc + 'Kurt_b1_gam{}_x_fin.png'.format(gamma), format = 'png')
 
-# Print a message to the screen to show that the plot of the quad ratio at a point as a 
+# Print a message to the screen to show that the plot of the kurtosis as a 
 # function of the observational effect has been saved
-print 'Plot of the quad ratio at a point as a function of observational effect saved b=1, xLOS'
+print 'Plot of the kurtosis as a function of observational effect saved b=1, xLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# SF slope - 1 vs Observational Effect - Low Magnetic Field - zLOS
+
+# Create a figure to display a plot of the SF slope - 1 as a function of the
+# observational effect, for simulations with b = 0.1 
+fig49 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax49 = fig49.add_subplot(111)
+
+# Plot the SF slope - 1 as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_z[:,0], m_z_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_z[:,1], m_z_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_z[:,2], m_z_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_z[:,3], m_z_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_z[:,4], m_z_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_z[:,5], m_z_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_z[:,6], m_z_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_z[:,7], m_z_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('SF slope - 1', fontsize = 20)
+
+# Add a title to the plot
+plt.title('SF Slope vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res, gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box49 = ax49.get_position()
+ax49.set_position([box49.x0, box49.y0, box49.width * 0.8, box49.height])
+
+# Force the legend to appear on the plot
+ax49.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'm_b.1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the SF slope - 1 as a 
+# function of the observational effect has been saved
+print 'Plot of the SF slope - 1 as a function of observational effect saved b=0.1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# SF slope - 1 vs Observational Effect - High Magnetic Field - zLOS
+
+# Create a figure to display a plot of the SF slope - 1 as a function of the
+# observational effect, for simulations with b = 1 
+fig50 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax50 = fig50.add_subplot(111)
+
+# Plot the SF slope - 1 as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_z[:, 8], m_z_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_z[:, 9], m_z_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_z[:,10], m_z_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_z[:,11], m_z_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_z[:,12], m_z_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_z[:,13], m_z_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_z[:,14], m_z_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_z[:,15], m_z_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('SF slope - 1', fontsize = 20)
+
+# Add a title to the plot
+plt.title('SF Slope vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box50 = ax50.get_position()
+ax50.set_position([box50.x0, box50.y0, box50.width * 0.8, box50.height])
+
+# Force the legend to appear on the plot
+ax50.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'm_b1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the SF slope - 1 as a 
+# function of the observational effect has been saved
+print 'Plot of the SF slope - 1 as a function of observational effect saved b=1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# SF slope - 1 vs Observational Effect - Low Magnetic Field - xLOS
+
+# Create a figure to display a plot of the SF slope - 1 as a function of the
+# observational effect, for simulations with b = 0.1 
+fig51 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax51 = fig51.add_subplot(111)
+
+# Plot the SF slope - 1 as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_x[:,0], m_x_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_x[:,1], m_x_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_x[:,2], m_x_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_x[:,3], m_x_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_x[:,4], m_x_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_x[:,5], m_x_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_x[:,6], m_x_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_x[:,7], m_x_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('SF slope - 1', fontsize = 20)
+
+# Add a title to the plot
+plt.title('SF Slope vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box51 = ax51.get_position()
+ax51.set_position([box51.x0, box51.y0, box51.width * 0.8, box51.height])
+
+# Force the legend to appear on the plot
+ax51.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'm_b.1_gam{}_x_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the SF slope - 1 as a 
+# function of the observational effect has been saved
+print 'Plot of the SF slope - 1 as a function of observational effect saved b=0.1, xLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# SF slope - 1 vs Observational Effect - High Magnetic Field - xLOS
+
+# Create a figure to display a plot of the SF slope - 1 as a function of the
+# observational effect, for simulations with b = 1 
+fig52 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax52 = fig52.add_subplot(111)
+
+# Plot the SF slope - 1 as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_x[:, 8], m_x_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_x[:, 9], m_x_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_x[:,10], m_x_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_x[:,11], m_x_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_x[:,12], m_x_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_x[:,13], m_x_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_x[:,14], m_x_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_x[:,15], m_x_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('SF slope - 1', fontsize = 20)
+
+# Add a title to the plot
+plt.title('SF Slope vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box52 = ax52.get_position()
+ax52.set_position([box52.x0, box52.y0, box52.width * 0.8, box52.height])
+
+# Force the legend to appear on the plot
+ax52.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'm_b1_gam{}_x_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the SF slope - 1 as a 
+# function of the observational effect has been saved
+print 'Plot of the SF slope - 1 as a function of observational effect saved b=1, xLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Residuals vs Observational Effect - Low Magnetic Field - zLOS
+
+# Create a figure to display a plot of the residuals as a function of the
+# observational effect, for simulations with b = 0.1 
+fig53 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax53 = fig53.add_subplot(111)
+
+# Plot the residuals as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_z[:,0], residual_z_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_z[:,1], residual_z_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_z[:,2], residual_z_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_z[:,3], residual_z_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_z[:,4], residual_z_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_z[:,5], residual_z_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_z[:,6], residual_z_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_z[:,7], residual_z_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Residuals', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Residuals vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box53 = ax53.get_position()
+ax53.set_position([box53.x0, box53.y0, box53.width * 0.8, box53.height])
+
+# Force the legend to appear on the plot
+ax53.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'residuals_b.1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the residuals as a 
+# function of the observational effect has been saved
+print 'Plot of the residuals as a function of observational effect saved b=0.1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Residuals vs Observational Effect - High Magnetic Field - zLOS
+
+# Create a figure to display a plot of the residuals as a function of the
+# observational effect, for simulations with b = 1 
+fig54 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax54 = fig54.add_subplot(111)
+
+# Plot the residuals as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_z[:, 8], residual_z_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_z[:, 9], residual_z_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_z[:,10], residual_z_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_z[:,11], residual_z_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_z[:,12], residual_z_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_z[:,13], residual_z_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_z[:,14], residual_z_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_z[:,15], residual_z_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Residuals', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Residuals vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box54 = ax54.get_position()
+ax54.set_position([box54.x0, box54.y0, box54.width * 0.8, box54.height])
+
+# Force the legend to appear on the plot
+ax54.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'residuals_b1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the residuals as a 
+# function of the observational effect has been saved
+print 'Plot of the residuals as a function of observational effect saved b=1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Residuals vs Observational Effect - Low Magnetic Field - xLOS
+
+# Create a figure to display a plot of the residuals as a function of the
+# observational effect, for simulations with b = 0.1 
+fig55 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax55 = fig55.add_subplot(111)
+
+# Plot the residuals as a function of the observational effect for simulations
+# with b = 0.1
+plt.plot(final_noise_x[:,0], residual_x_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_x[:,1], residual_x_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_x[:,2], residual_x_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_x[:,3], residual_x_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_x[:,4], residual_x_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_x[:,5], residual_x_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_x[:,6], residual_x_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_x[:,7], residual_x_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Residuals', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Residuals vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box55 = ax55.get_position()
+ax55.set_position([box55.x0, box55.y0, box55.width * 0.8, box55.height])
+
+# Force the legend to appear on the plot
+ax55.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'residuals_b.1_gam{}_x_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the residuals as a 
+# function of the observational effect has been saved
+print 'Plot of the residuals as a function of observational effect saved b=0.1, xLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Residuals vs Observational Effect - High Magnetic Field - xLOS
+
+# Create a figure to display a plot of the residuals as a function of the
+# observational effect, for simulations with b = 1 
+fig56 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax56 = fig56.add_subplot(111)
+
+# Plot the residuals as a function of the observational effect for simulations
+# with b = 1
+plt.plot(final_noise_x[:, 8], residual_x_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_x[:, 9], residual_x_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_x[:,10], residual_x_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_x[:,11], residual_x_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_x[:,12], residual_x_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_x[:,13], residual_x_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_x[:,14], residual_x_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_x[:,15], residual_x_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Residuals', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Residuals vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box56 = ax56.get_position()
+ax56.set_position([box56.x0, box56.y0, box56.width * 0.8, box56.height])
+
+# Force the legend to appear on the plot
+ax56.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'residuals_b1_gam{}_x_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the residuals as a 
+# function of the observational effect has been saved
+print 'Plot of the residuals as a function of observational effect saved b=1, xLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Integrated magnitude quad ratio vs Observational Effect - Low Magnetic Field - zLOS
+
+# Create a figure to display a plot of the integrated magnitude quad ratio as a 
+# function of the observational effect, for simulations with b = 0.1 
+fig57 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax57 = fig57.add_subplot(111)
+
+# Plot the integrated magnitude quad ratio as a function of the observational 
+# effect for simulations with b = 0.1
+plt.plot(final_noise_z[:,0], int_quad_z_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_z[:,1], int_quad_z_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_z[:,2], int_quad_z_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_z[:,3], int_quad_z_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_z[:,4], int_quad_z_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_z[:,5], int_quad_z_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_z[:,6], int_quad_z_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_z[:,7], int_quad_z_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Int quad/mono vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res, gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box57 = ax57.get_position()
+ax57.set_position([box57.x0, box57.y0, box57.width * 0.8, box57.height])
+
+# Force the legend to appear on the plot
+ax57.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'int_quad_b.1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the integrated quad ratio as a 
+# function of the observational effect has been saved
+print 'Plot of the integrated quad ratio as a function of observational effect saved b=0.1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Integrated magnitude quad ratio vs Observational Effect - High Magnetic Field - zLOS
+
+# Create a figure to display a plot of the integrated magnitude quad ratio as a 
+# function of the observational effect, for simulations with b = 1 
+fig58 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax58 = fig58.add_subplot(111)
+
+# Plot the integrated magnitude quad ratio as a function of the observational 
+# effect for simulations with b = 1
+plt.plot(final_noise_z[:, 8], int_quad_z_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_z[:, 9], int_quad_z_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_z[:,10], int_quad_z_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_z[:,11], int_quad_z_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_z[:,12], int_quad_z_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_z[:,13], int_quad_z_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_z[:,14], int_quad_z_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_z[:,15], int_quad_z_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Int quad/mono vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} z'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box58 = ax58.get_position()
+ax58.set_position([box58.x0, box58.y0, box58.width * 0.8, box58.height])
+
+# Force the legend to appear on the plot
+ax58.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'int_quad_b1_gam{}_z_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the integrated quad ratio as a 
+# function of the observational effect has been saved
+print 'Plot of the integrated quad ratio as a function of observational effect saved b=1, zLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Integrated magnitude quad ratio vs Observational Effect - Low Magnetic Field - xLOS
+
+# Create a figure to display a plot of the integrated magnitude quad ratio as a 
+# function of the observational effect, for simulations with b = 0.1 
+fig59 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax59 = fig59.add_subplot(111)
+
+# Plot the integrated magnitude quad ratio as a function of the observational 
+# effect for simulations with b = 0.1
+plt.plot(final_noise_x[:,0], int_quad_x_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
+plt.plot(final_noise_x[:,1], int_quad_x_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
+plt.plot(final_noise_x[:,2], int_quad_x_arr[:,2],'r-o',label = '{}'.format(short_simul[2]))
+plt.plot(final_noise_x[:,3], int_quad_x_arr[:,3],'r--o',label= '{}'.format(short_simul[3]))
+plt.plot(final_noise_x[:,4], int_quad_x_arr[:,4],'g-o',label = '{}'.format(short_simul[4]))
+plt.plot(final_noise_x[:,5], int_quad_x_arr[:,5],'g--o',label= '{}'.format(short_simul[5]))
+plt.plot(final_noise_x[:,6], int_quad_x_arr[:,6],'c-o',label = '{}'.format(short_simul[6]))
+plt.plot(final_noise_x[:,7], int_quad_x_arr[:,7],'c--o',label= '{}'.format(short_simul[7]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Int quad/mono vs ' + final_title_string + ' b.1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box59 = ax59.get_position()
+ax59.set_position([box59.x0, box59.y0, box59.width * 0.8, box59.height])
+
+# Force the legend to appear on the plot
+ax59.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'int_quad_b.1_gam{}_x_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the integrated quad ratio as a 
+# function of the observational effect has been saved
+print 'Plot of the integrated quad ratio as a function of observational effect saved b=0.1, xLOS'
+
+# Close the figure, now that it has been saved.
+plt.close()
+
+# Integrated magnitude quad ratio vs Observational Effect - High Magnetic Field - xLOS
+
+# Create a figure to display a plot of the integrated magnitude quad ratio as a 
+# function of the observational effect, for simulations with b = 1 
+fig60 = plt.figure(figsize = (10,6))
+
+# Create an axis for this figure
+ax60 = fig60.add_subplot(111)
+
+# Plot the integrated magnitude quad ratio as a function of the observational 
+# effect for simulations with b = 1
+plt.plot(final_noise_x[:, 8], int_quad_x_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
+plt.plot(final_noise_x[:, 9], int_quad_x_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
+plt.plot(final_noise_x[:,10], int_quad_x_arr[:,10],'r-o',label = '{}'.format(short_simul[10]))
+plt.plot(final_noise_x[:,11], int_quad_x_arr[:,11],'r--o',label= '{}'.format(short_simul[11]))
+plt.plot(final_noise_x[:,12], int_quad_x_arr[:,12],'g-o',label = '{}'.format(short_simul[12]))
+plt.plot(final_noise_x[:,13], int_quad_x_arr[:,13],'g--o',label= '{}'.format(short_simul[13]))
+plt.plot(final_noise_x[:,14], int_quad_x_arr[:,14],'c-o',label = '{}'.format(short_simul[14]))
+plt.plot(final_noise_x[:,15], int_quad_x_arr[:,15],'c--o',label= '{}'.format(short_simul[15]))
+
+# Add a label to the x-axis
+plt.xlabel(xlabel, fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Integrated Mag quad/mono', fontsize = 20)
+
+# Add a title to the plot
+plt.title('Int quad/mono vs ' + final_title_string + ' b1 Ang{0:.2f} Gam{1} x'.format(\
+	final_res,gamma), fontsize = 20)
+
+# Shrink the width of the plot axes
+box60 = ax60.get_position()
+ax60.set_position([box60.x0, box60.y0, box60.width * 0.8, box60.height])
+
+# Force the legend to appear on the plot
+ax60.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Save the figure using the given filename and format
+plt.savefig(save_loc + 'int_quad_b1_gam{}_x_fin.png'.format(gamma), format = 'png')
+
+# Print a message to the screen to show that the plot of the integrated quad ratio as a 
+# function of the observational effect has been saved
+print 'Plot of the integrated quad ratio as a function of observational effect saved b=1, xLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()

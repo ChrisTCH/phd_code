@@ -53,13 +53,13 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'c512b1p.025/'
+spec_loc = 'b.1p.01_Oct_Burk/'
 
 # Create a string for the full directory path to use in calculations
 data_loc =  simul_loc + spec_loc
 
 # Open the FITS file that contains the simulated synchrotron intensity maps
-sync_fits = fits.open(data_loc + 'synint_p1-4.fits')
+sync_fits = fits.open(data_loc + 'synint_p1-4zgal.fits')
 
 # Extract the data for the simulated synchrotron intensities
 # This is a 3D data cube, where the slices along the third axis are the
@@ -80,7 +80,8 @@ format(sync_shape)
 
 # Create an array that specifies the value of gamma used to produce each 
 # synchrotron intensity map
-gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
+# gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
+gamma_arr = np.array([1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4])
 
 # Create an array of zeroes, which will hold the normalised, radially averaged 
 # correlation functions calculated for the synchrotron data. This array is 2 
@@ -148,6 +149,9 @@ plt.plot(rad_arr[3], cf_mat[3], 'c-o', label ='Gamma = {}'.format(gamma_arr[3]))
 plt.plot(rad_arr[4], cf_mat[4], 'm-o', label ='Gamma = {}'.format(gamma_arr[4]))
 plt.plot(rad_arr[5], cf_mat[5], 'y-o', label ='Gamma = {}'.format(gamma_arr[5]))
 plt.plot(rad_arr[6], cf_mat[6], 'k-o', label ='Gamma = {}'.format(gamma_arr[6]))
+plt.plot(rad_arr[7], cf_mat[7], 'b-^', label ='Gamma = {}'.format(gamma_arr[7]))
+plt.plot(rad_arr[8], cf_mat[8], 'r-^', label ='Gamma = {}'.format(gamma_arr[8]))
+plt.plot(rad_arr[9], cf_mat[9], 'g-^', label ='Gamma = {}'.format(gamma_arr[9]))
 
 # Make the x axis of the plot logarithmic
 ax1.set_xscale('log')
@@ -168,7 +172,7 @@ plt.title('Sync Intensity Corr Fun', fontsize = 20)
 plt.legend(loc = 3)
 
 # Save the figure using the given filename and format
-plt.savefig(data_loc + 'Sync_Int_Corr_Comp_1.png', format = 'png')
+plt.savefig(data_loc + 'Sync_Int_Corr_Comp_gal.png', format = 'png')
 
 # Print a message to the screen to show that the plot of all of the synchrotron
 # correlation functions has been saved
@@ -182,31 +186,31 @@ fig2 = plt.figure()
 # Create an axis for this figure
 ax2 = fig2.add_subplot(111)
 
-# Plot the maximum difference between the correlation functions
-# What this code does is find the maximum and minimum correlation function
-# values for each radial separation value, calculate the difference between
-# them, and then plot this.
-# Add /np.max(np.abs(cf_mat), axis = 0) to plot fractional difference
-plt.plot(rad_arr[0], (np.max(cf_mat, axis = 0) - np.min(cf_mat, axis = 0))\
-	/np.max(np.abs(cf_mat), axis = 0), 'b-o') 
+# # Plot the maximum difference between the correlation functions
+# # What this code does is find the maximum and minimum correlation function
+# # values for each radial separation value, calculate the difference between
+# # them, and then plot this.
+# # Add /np.max(np.abs(cf_mat), axis = 0) to plot fractional difference
+# plt.plot(rad_arr[0], (np.max(cf_mat, axis = 0) - np.min(cf_mat, axis = 0))\
+# 	/np.max(np.abs(cf_mat), axis = 0), 'b-o') 
 
-# Make the x axis of the plot logarithmic
-ax2.set_xscale('log')
+# # Make the x axis of the plot logarithmic
+# ax2.set_xscale('log')
 
-# Make the y axis of the plot logarithmic
-#ax2.set_yscale('log')
+# # Make the y axis of the plot logarithmic
+# #ax2.set_yscale('log')
 
-# Add a label to the x-axis
-plt.xlabel('Radial Separation R', fontsize = 20)
+# # Add a label to the x-axis
+# plt.xlabel('Radial Separation R', fontsize = 20)
 
-# Add a label to the y-axis
-plt.ylabel('Max difference', fontsize = 20)
+# # Add a label to the y-axis
+# plt.ylabel('Max difference', fontsize = 20)
 
-# Add a title to the plot
-plt.title('Maximum fractional difference between Corr Fun', fontsize = 20)
+# # Add a title to the plot
+# plt.title('Maximum fractional difference between Corr Fun', fontsize = 20)
 
-# Save the figure using the given filename and format
-plt.savefig(data_loc + 'Sync_Int_Max_Diff_1.png', format = 'png')
+# # Save the figure using the given filename and format
+# plt.savefig(data_loc + 'Sync_Int_Max_Diff_1.png', format = 'png')
 
 # Close the figures so that they don't stay in memory
 plt.close(fig1)

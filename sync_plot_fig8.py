@@ -61,21 +61,34 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 
 # Create strings giving the directories for the simulations produced with a 
 # low magnetic field
-low_B_sims = ['b.1p.01_Oct_Burk/', 'b.1p.1_Oct_Burk/', 'c512b.1p.7/', \
+# low_B_sims = ['b.1p.01_Oct_Burk/', 'b.1p.1_Oct_Burk/', 'c512b.1p.7/', \
+# 'b.1p2_Aug_Burk/'] 
+low_B_sims = ['c512b.1p.0049/', 'c512b.1p.0077/', 'b.1p.01_Oct_Burk/',\
+ 'c512b.1p.025/', 'c512b.1p.05/', 'b.1p.1_Oct_Burk/', 'c512b.1p.7/', \
 'b.1p2_Aug_Burk/'] 
 
 # Create strings giving the directories for the simulations produced with a 
 # high magnetic field
-high_B_sims = ['b1p.01_Oct_Burk/', 'b1p.1_Oct_Burk/', 'c512b1p.7/', \
-'b1p2_Aug_Burk/']
+# high_B_sims = ['b1p.01_Oct_Burk/', 'b1p.1_Oct_Burk/', 'c512b1p.7/', \
+# 'b1p2_Aug_Burk/']
+high_B_sims = ['c512b1p.0049/', 'c512b1p.0077/', 'b1p.01_Oct_Burk/',\
+ 'c512b1p.025/', 'c512b1p.05/', 'b1p.1_Oct_Burk/', 'c512b1p.7/', \
+'b1p2_Aug_Burk/'] 
 
 # Create strings giving the simulation codes, for the low magnetic field 
 # simulations used to produce plots
-low_B_short = ['b.1p.01', 'b.1p.1', 'b.1p.7', 'b.1p2']
+# low_B_short = ['b.1p.01', 'b.1p.1', 'b.1p.7', 'b.1p2']
+low_B_short = ['b.1p.0049', 'b.1p.0077', 'b.1p.01', 'b.1p.025', 'b.1p.05',\
+ 'b.1p.1', 'b.1p.7', 'b.1p2']
 
 # Create strings giving the simulation codes, for the high magnetic field
 # simulations used to produce plots
-high_B_short = ['b1p.01', 'b1p.1', 'b1p.7', 'b1p2']
+# high_B_short = ['b1p.01', 'b1p.1', 'b1p.7', 'b1p2']
+high_B_short = ['b1p.0049', 'b1p.0077', 'b1p.01', 'b1p.025', 'b1p.05',\
+ 'b1p.1', 'b1p.7', 'b1p2']
+
+# Create a list that holds the colours to use for each simulation
+color_list = ['b', 'r', 'g', 'c', 'm', 'y', 'k', (1,0.41,0)]
 
 # Create an array that specifies the value of gamma used to produce each 
 # synchrotron emissivity cube
@@ -258,149 +271,149 @@ for i in range(len(low_B_sims)):
 
 # ---------------------- Plots of skewness and kurtosis ------------------------
 
-# Here we want to produce one plot with four subplots. There should be two rows
-# of subplots, with two subplots in each row. The top row will be skewness, and
-# the bottom row will be kurtosis. The left column will be low magnetic field
-# simulations, and the right column will be high magnetic field simulations.
+# # Here we want to produce one plot with four subplots. There should be two rows
+# # of subplots, with two subplots in each row. The top row will be skewness, and
+# # the bottom row will be kurtosis. The left column will be low magnetic field
+# # simulations, and the right column will be high magnetic field simulations.
 
-# Create a figure to hold all of the subplots
-fig = plt.figure(1, figsize=(9,6), dpi = 300)
+# # Create a figure to hold all of the subplots
+# fig = plt.figure(1, figsize=(9,6), dpi = 300)
 
-# Create an axis for the first subplot to be produced, which is for the skewness 
-# of low magnetic field simulations
-ax1 = fig.add_subplot(221)
+# # Create an axis for the first subplot to be produced, which is for the skewness 
+# # of low magnetic field simulations
+# ax1 = fig.add_subplot(221)
 
-# Loop over the low magnetic field simulations to produce plots for each simulation
-for i in range(len(low_B_sims)):
-	# Plot the skewness for this simulation, against gamma
-	plt.plot(gamma_arr, skew_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
+# # Loop over the low magnetic field simulations to produce plots for each simulation
+# for i in range(len(low_B_sims)):
+# 	# Plot the skewness for this simulation, against gamma
+# 	plt.plot(gamma_arr, skew_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
 
-# Force the legends to appear on the plot
-plt.legend(loc = 2, fontsize = 10)
+# # Force the legends to appear on the plot
+# plt.legend(loc = 2, fontsize = 10)
 
-# Add a label to the y-axis
-plt.ylabel('Skewness', fontsize = 20)
+# # Add a label to the y-axis
+# plt.ylabel('Skewness', fontsize = 20)
 
-# Make the x axis tick labels invisible
-plt.setp( ax1.get_xticklabels(), visible=False)
+# # Make the x axis tick labels invisible
+# plt.setp( ax1.get_xticklabels(), visible=False)
 
-# Create an axis for the second subplot to be produced, which is for the 
-# skewness of high magnetic field simulations. Make the y axis limits the same 
-# as for the low magnetic field plot
-ax2 = fig.add_subplot(222, sharey = ax1)
+# # Create an axis for the second subplot to be produced, which is for the 
+# # skewness of high magnetic field simulations. Make the y axis limits the same 
+# # as for the low magnetic field plot
+# ax2 = fig.add_subplot(222, sharey = ax1)
 
-# Loop over the high magnetic field simulations to produce plots for each simulation
-for i in range(len(high_B_sims)):
-	# Plot the skewness for this simulation, against gamma
-	plt.plot(gamma_arr, skew_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
+# # Loop over the high magnetic field simulations to produce plots for each simulation
+# for i in range(len(high_B_sims)):
+# 	# Plot the skewness for this simulation, against gamma
+# 	plt.plot(gamma_arr, skew_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
 
-# Force the legends to appear on the plot
-plt.legend(loc = 2, fontsize = 10)
+# # Force the legends to appear on the plot
+# plt.legend(loc = 2, fontsize = 10)
 
-# Make the x axis tick labels invisible
-plt.setp( ax2.get_xticklabels(), visible=False)
+# # Make the x axis tick labels invisible
+# plt.setp( ax2.get_xticklabels(), visible=False)
 
-# Make the y axis tick labels invisible
-plt.setp( ax2.get_yticklabels(), visible=False)
+# # Make the y axis tick labels invisible
+# plt.setp( ax2.get_yticklabels(), visible=False)
 
-# Create an axis for the third subplot to be produced, which is for the kurtosis 
-# of low magnetic field simulations. Make the x axis limits the same as
-# for the first plot
-ax3 = fig.add_subplot(223, sharex = ax1)
+# # Create an axis for the third subplot to be produced, which is for the kurtosis 
+# # of low magnetic field simulations. Make the x axis limits the same as
+# # for the first plot
+# ax3 = fig.add_subplot(223, sharex = ax1)
 
-# Loop over the low magnetic field simulations to produce plots for each simulation
-for i in range(len(low_B_sims)):
-	# Plot the kurtosis for this simulation, against gamma
-	plt.plot(gamma_arr, kurt_low_arr[i], '-o')
+# # Loop over the low magnetic field simulations to produce plots for each simulation
+# for i in range(len(low_B_sims)):
+# 	# Plot the kurtosis for this simulation, against gamma
+# 	plt.plot(gamma_arr, kurt_low_arr[i], '-o')
 
-# Add a label to the y-axis
-plt.ylabel('Kurtosis', fontsize = 20)
+# # Add a label to the y-axis
+# plt.ylabel('Kurtosis', fontsize = 20)
 
-# Create an axis for the fourth subplot to be produced, which is for the 
-# kurtosis of high magnetic field simulations. Make the x axis limits the same 
-# as for the second plot
-ax4 = fig.add_subplot(224, sharex = ax2)
+# # Create an axis for the fourth subplot to be produced, which is for the 
+# # kurtosis of high magnetic field simulations. Make the x axis limits the same 
+# # as for the second plot
+# ax4 = fig.add_subplot(224, sharex = ax2)
 
-# Loop over the high magnetic field simulation to produce plots for each simulation
-for i in range(len(high_B_sims)):
-	# Plot the kurtosis for this simulation, against gamma
-	plt.plot(gamma_arr, kurt_high_arr[i], '-o')
+# # Loop over the high magnetic field simulation to produce plots for each simulation
+# for i in range(len(high_B_sims)):
+# 	# Plot the kurtosis for this simulation, against gamma
+# 	plt.plot(gamma_arr, kurt_high_arr[i], '-o')
 
-# Add a label to the x-axis
-plt.figtext(0.5, 0.0, 'Gamma', ha = 'center', \
-	va = 'bottom', fontsize = 20)
+# # Add a label to the x-axis
+# plt.figtext(0.5, 0.0, 'Gamma', ha = 'center', \
+# 	va = 'bottom', fontsize = 20)
 
-# Add some text to the figure, to label the left plot as figure a
-plt.figtext(0.19, 0.95, 'a) Skew, low B', fontsize = 18)
+# # Add some text to the figure, to label the left plot as figure a
+# plt.figtext(0.19, 0.95, 'a) Skew, low B', fontsize = 18)
 
-# Add some text to the figure, to label the left plot as figure b
-plt.figtext(0.61, 0.95, 'b) Skew, high B', fontsize = 18)
+# # Add some text to the figure, to label the left plot as figure b
+# plt.figtext(0.61, 0.95, 'b) Skew, high B', fontsize = 18)
 
-# Add some text to the figure, to label the right plot as figure c
-plt.figtext(0.19, 0.475, 'c) Kurt, low B', fontsize = 18)
+# # Add some text to the figure, to label the right plot as figure c
+# plt.figtext(0.19, 0.475, 'c) Kurt, low B', fontsize = 18)
 
-# Add some text to the figure, to label the right plot as figure d
-plt.figtext(0.61, 0.475, 'd) Kurt, high B', fontsize = 18)
+# # Add some text to the figure, to label the right plot as figure d
+# plt.figtext(0.61, 0.475, 'd) Kurt, high B', fontsize = 18)
 
-# Save the figure using the given filename and format
-plt.savefig(simul_loc + 'Publication_Plots/fig8a.eps', format = 'eps')
+# # Save the figure using the given filename and format
+# plt.savefig(simul_loc + 'Publication_Plots/fig8a.eps', format = 'eps')
 
-# Close the figure so that it does not stay in memory
-plt.close()
+# # Close the figure so that it does not stay in memory
+# plt.close()
 
-#-------------------------- Structure Function Slope ---------------------------
+# #-------------------------- Structure Function Slope ---------------------------
 
-# Here we want to produce one plot with two subplots. There should be one row
-# of subplots, with two subplots in the row. The plot on the left should be
-# the structure function slope as a function of gamma for low magnetic field 
-# simulations, and the plot on the right should be the structure function slope
-# as a function of gamma for high magnetic field simulations.
+# # Here we want to produce one plot with two subplots. There should be one row
+# # of subplots, with two subplots in the row. The plot on the left should be
+# # the structure function slope as a function of gamma for low magnetic field 
+# # simulations, and the plot on the right should be the structure function slope
+# # as a function of gamma for high magnetic field simulations.
 
-# Create a figure to hold all of the subplots
-fig = plt.figure(1, figsize=(9,5), dpi = 300)
+# # Create a figure to hold all of the subplots
+# fig = plt.figure(1, figsize=(9,5), dpi = 300)
 
-# Create an axis for the first subplot to be produced, which is for the 
-# structure function slope of low magnetic field simulations
-ax1 = fig.add_subplot(121)
+# # Create an axis for the first subplot to be produced, which is for the 
+# # structure function slope of low magnetic field simulations
+# ax1 = fig.add_subplot(121)
 
-# Loop over the simulations to plot structure function slope vs gamma
-for i in range(len(low_B_sims)):
-	# Plot the structure function slope as a function of gamma for this simulation
-	plt.plot(gamma_arr, sf_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
+# # Loop over the simulations to plot structure function slope vs gamma
+# for i in range(len(low_B_sims)):
+# 	# Plot the structure function slope as a function of gamma for this simulation
+# 	plt.plot(gamma_arr, sf_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
 
-# Force the legend to appear on the plot
-plt.legend(loc = 3, fontsize = 10)
+# # Force the legend to appear on the plot
+# plt.legend(loc = 3, fontsize = 10)
 
-# Add a y-axis label to the plot
-plt.ylabel('m', fontsize = 20)
+# # Add a y-axis label to the plot
+# plt.ylabel('m', fontsize = 20)
 
-# Create an axis for the second subplot to be produced, which is for the 
-# structure function slope of high magnetic field simulations.
-ax2 = fig.add_subplot(122)
+# # Create an axis for the second subplot to be produced, which is for the 
+# # structure function slope of high magnetic field simulations.
+# ax2 = fig.add_subplot(122)
 
-# Loop over the simulations to plot the structure function slope vs gamma
-for i in range(len(high_B_sims)):
-	# Plot the structure function slope as a function of gamma for this simulation
-	plt.plot(gamma_arr, sf_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
+# # Loop over the simulations to plot the structure function slope vs gamma
+# for i in range(len(high_B_sims)):
+# 	# Plot the structure function slope as a function of gamma for this simulation
+# 	plt.plot(gamma_arr, sf_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
 
-# Add a label to the x-axis
-plt.figtext(0.5, 0.0, 'Gamma', ha = 'center', \
-	va = 'bottom', fontsize = 20)
+# # Add a label to the x-axis
+# plt.figtext(0.5, 0.0, 'Gamma', ha = 'center', \
+# 	va = 'bottom', fontsize = 20)
 
-# Force the legend to appear on the plot
-plt.legend(loc = 3, fontsize = 10)
+# # Force the legend to appear on the plot
+# plt.legend(loc = 3, fontsize = 10)
 
-# Add some text to the figure, to label the left plot as figure a
-plt.figtext(0.19, 0.95, 'a) m, low B', fontsize = 18)
+# # Add some text to the figure, to label the left plot as figure a
+# plt.figtext(0.19, 0.95, 'a) m, low B', fontsize = 18)
 
-# Add some text to the figure, to label the left plot as figure b
-plt.figtext(0.61, 0.95, 'b) m, high B', fontsize = 18)
+# # Add some text to the figure, to label the left plot as figure b
+# plt.figtext(0.61, 0.95, 'b) m, high B', fontsize = 18)
 
-# Save the figure using the given filename and format
-plt.savefig(simul_loc + 'Publication_Plots/fig8b.eps', format = 'eps')
+# # Save the figure using the given filename and format
+# plt.savefig(simul_loc + 'Publication_Plots/fig8b.eps', format = 'eps')
 
-# Close the figure so that it does not stay in memory
-plt.close()
+# # Close the figure so that it does not stay in memory
+# plt.close()
 
 #----------------------------- Quadrupole Ratios -------------------------------
 
@@ -420,7 +433,8 @@ ax1 = fig.add_subplot(121)
 # Loop over the simulations to plot integrated quadrupole ratio vs gamma
 for i in range(len(low_B_sims)):
 	# Plot the integrated quadrupole ratio as a function of gamma for this simulation
-	plt.plot(gamma_arr, quad_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
+	plt.plot(gamma_arr, quad_low_arr[i], '-o', color = color_list[i],\
+		label = '{}'.format(low_B_short[i]))
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2, fontsize = 10)
@@ -436,7 +450,8 @@ ax2 = fig.add_subplot(122, sharey = ax1)
 # Loop over the simulations to plot the integrated quadrupole ratio vs gamma
 for i in range(len(high_B_sims)):
 	# Plot the integrated quadrupole ratio as a function of gamma for this simulation
-	plt.plot(gamma_arr, quad_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
+	plt.plot(gamma_arr, quad_high_arr[i], '-o', color = color_list[i],\
+		label = '{}'.format(high_B_short[i]))
 
 # Make the y axis tick labels invisible
 plt.setp( ax2.get_yticklabels(), visible=False)
@@ -455,7 +470,7 @@ plt.figtext(0.15, 0.95, 'a) Quad Ratio, low B', fontsize = 18)
 plt.figtext(0.58, 0.95, 'b) Quad Ratio, high B', fontsize = 18)
 
 # Save the figure using the given filename and format
-plt.savefig(simul_loc + 'Publication_Plots/fig8c.eps', format = 'eps')
+plt.savefig(simul_loc + 'Publication_Plots/fig8d.eps', format = 'eps')
 
 # Close the figure so that it does not stay in memory
 plt.close()

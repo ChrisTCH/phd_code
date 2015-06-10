@@ -3,27 +3,24 @@
 # This code is a Python script that reads in arrays of simulated synchrotron   #
 # intensities, and calculates the skewness, kurtosis, radially averaged        #
 # structure function, and quadrupole/monopole ratio of synchrotron intensity   #
-# maps that are influenced by observational effects. Each of these quantities  #
+# maps as the central observing frequency changes. Each of these quantities    #
 # is plotted against the sonic and Alfvenic Mach numbers, to see which         #
 # quantities are sensitive tracers of the sonic and Alfvenic Mach numbers.     #
-# Quantities are also plotted against the free parameters of the observational #
-# effects, to directly show how observations affect measured statistics.       #
+# Quantities are also plotted against the central observing frequency, to      #
+# directly show how observations affect measured statistics.                   #
 #                                                                              #
 # Author: Chris Herron                                                         #
-# Start Date: 12/12/2014                                                       #
+# Start Date: 21/4/2015                                                        #
 #                                                                              #
 #------------------------------------------------------------------------------#
 
 # First import numpy for array handling, matplotlib for plotting, astropy.io
 # for fits manipulation, astropy.convolution for convolution functions, 
-# scipy.stats for calculating statistical quantities,
-# scipy.ndimage for smoothing and convolution
+# scipy.stats for calculating statistical quantities
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
-from astropy.convolution import convolve_fft, Gaussian2DKernel
 from scipy import stats
-from scipy import ndimage
 
 # Import the functions that calculate the structure and correlation functions
 # using FFT, the function that calculates the radially averaged structure or 
@@ -131,136 +128,84 @@ gam_index = 2
 # Create a variable that just holds the value of gamma being used
 gamma = gamma_arr[gam_index]
 
-# Create a string that determines what observational effect will be studied
-# String can be one of the following:
-# spec - Study how statistics change as spectral resolution is varied
-# noise - Study how statistics change as noise level is varied
-# res - Study how statistics change as the spatial resolution is varied
-obs_effect = 'res'
-
 # Create a variable that controls how many data points are being used for the
 # free parameter
 free_num = 50
 
-# Create a variable that controls how many sub-channels are used if we are 
-# studying the effect of spectral resolution.
-sub_channels = 50
+# Create a string that will go into all of the filenames of the saved images, to
+# show that they were produced when studying changes in the observing frequency
+obs_effect = 'CenFreq'
 
-# Depending on what observational effect is being studied, create an array of 
-# values over which we will iterate. This array represents the values of the 
-# free parameter related to the observational effect 
-if obs_effect == 'spec':
-	# Create an array of spectral channel width values (in MHz), over which
-	# to iterate. Each value represents the width of a spectral channel that 
-	# is centred on 1.4 GHz.
-	iter_array = np.linspace(1, 300, free_num)
+# Create an array of values respresenting the central observing frequency
+# expressed in GHz.
+iter_array = np.linspace(0.8, 2.8, free_num)
 
-	# Create a label for the x-axis of plots that are made against spectral
-	# channel width
-	xlabel = 'Spectral Resolution [MHz]'
+# Create a label for the x-axis of plots that are made against the central
+# observing frequency
+xlabel = 'Central Observing Frequency [GHz]'
 
-	# Create a string to be used in the titles of any plots that are made 
-	# against spectral channel width
-	title_string = 'Spectral Resolution'
+# Create a string to be used in the titles of any plots that are made 
+# against central observing frequency
+title_string = 'Central Observing Freq'
 
-	# Create a string to be used in legends involving spectral channel width
-	leg_string = 'SpecRes = ' 
-elif obs_effect == 'noise':
-	# Create an array of values that will be used to determine the standard
-	# deviation of the Gaussian distribution from which noise values are 
-	# generated. The standard deviation will be calculated by multiplying the
-	# median synchrotron intensity by the values in this array.
-	iter_array = np.linspace(0.01, 0.5, free_num)
-
-	# Create a label for the x-axis of plots that are made against noise
-	# standard deviation
-	xlabel = 'Noise StandDev [perc median inten]'
-
-	# Create a string to be used in the titles of any plots that are made 
-	# against noise standard deviation
-	title_string = 'Noise StandDev'
-
-	# Create a string to be used in legends involving spectral channel width
-	leg_string = 'Noise = ' 
-elif obs_effect == 'res':
-	# Create an array of values that represent the standard deviation of the 
-	# Gaussian used to smooth the synchrotron maps. All values are in pixels.
-	iter_array = np.linspace(1.0, 50.0, free_num)
-
-	# Create an array of values representing the final angular resolution of
-	# the image after smoothing. The final resolution is calculated by 
-	# quadrature from the initial resolution (1 pixel) and the standard 
-	# deviation of the convolving Gaussian.
-	final_res = np.sqrt(1.0 + np.power(iter_array,2.0))
-
-	# Create a label for the x-axis of plots that are made against angular 
-	# resolution
-	xlabel = 'Angular Resolution [pixels]'
-
-	# Create a string to be used in the titles of any plots that are made 
-	# against angular resolution
-	title_string = 'Angular Resolution'
-
-	# Create a string to be used in legends involving angular resolution
-	leg_string = 'AngRes = ' 
+# Create a string to be used in legends involving central observing frequency
+leg_string = 'CenFreq = ' 
 
 # Create an empty array, where each entry specifies the calculated skewness of
 # the synchrotron intensity image of the corresponding simulation for a 
-# particular value of the free parameter related to the observational effect 
-# being studied. Each row corresponds to a value of the free parameter, and each 
-# column corresponds to a simulation. There is one array for a line of sight
-# along the z axis, and another for a line of sight along the x axis.
+# particular value of the central observing frequency. Each row corresponds to a
+# value of the observing frequency, and each column corresponds to a simulation.
+# There is one array for a line of sight along the z axis, and another for a 
+# line of sight along the x axis.
 # NOTE: We will calculate the biased skewness
 skew_z_arr = np.zeros((len(iter_array),len(simul_arr)))
 skew_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 
 # Create an empty array, where each entry specifies the calculated kurtosis of
 # the synchrotron intensity image of the corresponding simulation for a 
-# particular value of the free parameter related to the observational effect 
-# being studied. Each row corresponds to a value of the free parameter, and each 
-# column corresponds to a simulation. There is one array for a line of sight
-# along the z axis, and another for a line of sight along the x axis.
+# particular value of the central observing frequency. Each row corresponds to a
+# value of the observing frequency, and each column corresponds to a simulation.
+# There is one array for a line of sight along the z axis, and another for a 
+# line of sight along the x axis.
 # NOTE: We will calculate the biased Fisher kurtosis
 kurt_z_arr = np.zeros((len(iter_array),len(simul_arr)))
 kurt_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 
 # Create an empty array, where each entry specifies the calculated slope of
 # the structure function of the synchrotron intensity image minus 1, of the 
-# corresponding simulation, for a particular value of the free parameter related
-# to the observational effect being studied. Each row corresponds to a value of 
-# the free parameter, and each column corresponds to a simulation. There is one 
-# array for a line of sight along the z axis, and another for a line of sight
-# along the x axis.
+# corresponding simulation, for a particular value of the central observing 
+# frequency. Each row corresponds to a value of the observing frequency, and 
+# each column corresponds to a simulation. There is one array for a line of 
+# sight along the z axis, and another for a line of sight along the x axis.
 m_z_arr = np.zeros((len(iter_array),len(simul_arr)))
 m_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 
 # Create an empty array, where each entry specifies the residuals of the linear
 # fit to the structure function of the synchrotron intensity image, of the 
-# corresponding simulation, for a particular value of the free parameter related
-# to the observational effect being studied. Each row corresponds to a value of 
-# the free parameter, and each column corresponds to a simulation. There is one 
-# array for a line of sight along the z axis, and another for a line of sight 
-# along the x axis.
+# corresponding simulation, for a particular value of the central observing 
+# frequency. Each row corresponds to a value of the observing frequency, and 
+# each column corresponds to a simulation. There is one array for a line of 
+# sight along the z axis, and another for a line of sight along the x axis.
 residual_z_arr = np.zeros((len(iter_array),len(simul_arr)))
 residual_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 
 # Create an empty array, where each entry specifies the calculated integral of
 # the magnitude of the quadrupole / monopole ratio of the synchrotron intensity 
-# image, for the corresponding simulation, for a particular value of the free 
-# parameter related to the observational effect being studied. Each row 
-# corresponds to a value of the free parameter, and each column corresponds to a
-# simulation. There is one array for a line of sight along the z axis, and 
-# another for a line of sight along the x axis.
+# image, for the corresponding simulation, for a particular value of the central
+# observing frequency. Each row corresponds to a value of the observing 
+# frequency, and each column corresponds to a simulation. There is one array for
+# a line of sight along the z axis, and another for a line of sight along the x 
+# axis.
 int_quad_z_arr = np.zeros((len(iter_array),len(simul_arr)))
 int_quad_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 
 # Create an empty array, where each entry specifies the calculated magnitude of 
 # the quadrupole/monopole ratio of the synchrotron intensity image at a 
 # particular radial separation, for the corresponding simulation, for a 
-# particular value of the free parameter related to the observational effect 
-# being studied. Each row corresponds to a value of the free parameter, and each
-# column corresponds to a simulation. There is one array for a line of sight 
-# along the z axis, and another for a line of sight along the x axis.
+# particular value of the central observing frequency. Each row corresponds to a
+# value of the observing frequency, and each column corresponds to a simulation.
+# There is one array for a line of sight along the z axis, and another for a 
+# line of sight along the x axis.
 quad_point_z_arr = np.zeros((len(iter_array),len(simul_arr)))
 quad_point_x_arr = np.zeros((len(iter_array),len(simul_arr)))
 
@@ -295,122 +240,27 @@ for j in range(len(simul_arr)):
 	sync_map_z = sync_data_z[gam_index]
 	sync_map_x = sync_data_x[gam_index]
 
-	# Take into account an observing frequency of 1.4 GHz, by multiplying
-	# the extracted synchrotron maps by a gamma dependent frequency factor
-	sync_map_z_f = sync_map_z * np.power(1.4, -(gamma - 1))
-	sync_map_x_f = sync_map_x * np.power(1.4, -(gamma - 1))
-
 	# Print a message to the screen to show that the synchrotron data has been 
 	# loaded successfully
 	print 'Simulated synchrotron data loaded'
 
 	# Create empty arrays, that will store the synchrotron intensity maps
 	# produced. Each slice of these arrays corresponds to a different value
-	# of the free parameter being studied. There is one array for a line of 
+	# of the observing frequency being studied. There is one array for a line of 
 	# sight along the z axis, and another for a line of sight along the x axis.
 	sync_param_z = np.zeros((free_num, np.shape(sync_map_z)[0], \
 		np.shape(sync_map_z)[1]))
 	sync_param_x = np.zeros((free_num, np.shape(sync_map_x)[0], \
 		np.shape(sync_map_x)[1]))
 
-	# Loop over the various values of the free parameter related to the 
-	# observational effect being studied, to calculate the various statistics
-	# for the synchrotron map observed for each value of the free parameter
+	# Loop over the various values of the observing frequency, to calculate the 
+	# various statistics for the synchrotron map observed for each value of the
+	# observing frequency
 	for i in range(len(iter_array)):
-		# Check to see which observational effect is being studied
-		if obs_effect == 'spec':
-			# In this case, we are studying the effect of spectral resolution,
-			# so we start with an array of channel widths in MHz, and need to 
-			# convert this into the observing frequencies of sub-channels in
-			# GHz. 
-
-			# Construct an array of the sub-channel locations in MHz, specified
-			# relative to the central observing frequency.
-			sub_channel_loc = np.linspace(-iter_array[i]/2.0, iter_array[i]/2.0\
-				, sub_channels)
-
-			# Construct an array of the sub-channel locations in GHz, then raise
-			# this to a power related to gamma. This is done so that the 
-			# produced synchrotron intensity maps scale correctly with frequency
-			sub_channel_GHz = np.power(1.4 + 1e-3 * sub_channel_loc,-(gamma- 1))
-
-			# Construct a 3D array, where each slice gives the synchrotron map
-			# observed in that sub-channel. There is one array for a line of 
-			# sight along the z axis, and one for a line of sight along the x
-			# axis.
-			sync_maps_sub_chan_z = np.tile(sync_map_z, (sub_channels,1,1))\
-			 * np.transpose(np.tile(sub_channel_GHz, (np.shape(sync_map_z)[0]\
-			 	, np.shape(sync_map_z)[1], 1 )))
-			sync_maps_sub_chan_x = np.tile(sync_map_x, (sub_channels,1,1))\
-			 * np.transpose(np.tile(sub_channel_GHz, (np.shape(sync_map_x)[0]\
-			 	, np.shape(sync_map_x)[1], 1 )))
-
-			# Integrate the synchrotron maps measured in the sub-channels over
-			# frequency (the third axis, first index), and normalise by the 
-			# number of sub-channels used in the calculation. This is performed
-			# for lines of sight along the z and x axes
-			sync_map_free_param_z = np.mean(sync_maps_sub_chan_z, dtype = np.float64, axis = 0)
-			# np.trapz(sync_maps_sub_chan_z, dx = \
-			# 	sub_channel_GHz[1] - sub_channel_GHz[0],axis = 0) / sub_channels
-			sync_map_free_param_x = np.mean(sync_maps_sub_chan_x, dtype = np.float64, axis = 0)
-			# np.trapz(sync_maps_sub_chan_x, dx = \
-			# 	sub_channel_GHz[1] - sub_channel_GHz[0],axis = 0) / sub_channels
-
-		elif obs_effect == 'noise':
-			# In this case, we are taking into account the effect of noise in
-			# the telescope. We start with an array of values that, when 
-			# multiplied by the median intensity of the synchrotron map, give
-			# the standard deviation of the Gaussian noise. 
-
-			# Calculate the standard deviation of the Gaussian noise that will 
-			# affect the synchrotron maps. This needs to be done individually 
-			# for lines of sight along the z and x axes, because of the lines of
-			# sight have different intensity maps.
-			noise_stdev_z = iter_array[i] * np.median(sync_map_z_f)
-			noise_stdev_x = iter_array[i] * np.median(sync_map_x_f)
-
-			# Create an array of values that are randomly drawn from a Gaussian
-			# distribution with the specified standard deviation. This 
-			# represents the noise at each pixel of the image. 
-			noise_matrix_z = np.random.normal(scale = noise_stdev_z,\
-			 size = np.shape(sync_map_z))
-			noise_matrix_x = np.random.normal(scale = noise_stdev_x,\
-			 size = np.shape(sync_map_x))
-
-			# Add the noise maps onto the synchrotron intensity maps, to produce
-			# the mock 'observed' maps
-			sync_map_free_param_z = sync_map_z_f + noise_matrix_z
-			sync_map_free_param_x = sync_map_x_f + noise_matrix_x
-
-		elif obs_effect == 'res':
-			# In this case, we are taking into account the effect of spatial 
-			# resolution. We start with an array of values that specifies the
-			# standard deviation of the Gaussian to be used to smooth the data.
-
-			# Create a Gaussian kernel to use to smooth the synchrotron map,
-			# using the given standard deviation
-			gauss_kernel = Gaussian2DKernel(iter_array[i])
-
-			# Smooth the synchrotron maps to the required resolution by 
-			# convolution with the above Gaussian kernel.
-			sync_map_free_param_z = convolve_fft(sync_map_z_f, gauss_kernel, boundary = 'wrap')
-			sync_map_free_param_x = convolve_fft(sync_map_x_f, gauss_kernel, boundary = 'wrap')
-
-			# # Create empty arrays that will contain the final smoothed image.
-			# # This step is required to ensure that the smooth is as accurate as
-			# # possible
-			# sync_map_free_param_z = np.zeros(np.shape(sync_map_z), dtype =\
-			#  np.float64)
-			# sync_map_free_param_x = np.zeros(np.shape(sync_map_x), dtype =\
-			#  np.float64)
-
-			# # Smooth the synchrotron maps to the required resolution by 
-			# # convolution. The results for lines of sight along the z and x axes
-			# # are automatically stored in the arrays that were created.
-			# ndimage.filters.gaussian_filter(sync_map_z,\
-			# 	sigma = iter_array[i], output = sync_map_free_param_z)
-			# ndimage.filters.gaussian_filter(sync_map_x,\
-			# 	sigma = iter_array[i], output = sync_map_free_param_x)
+		# Take into account the observing frequency, by multiplying
+		# the extracted synchrotron maps by a gamma dependent frequency factor
+		sync_map_free_param_z = sync_map_z * np.power(iter_array[i], -(gamma - 1))
+		sync_map_free_param_x = sync_map_x * np.power(iter_array[i], -(gamma - 1))
 
 		# Now that the synchrotron map has been produced for this value of the
 		# free parameter, store it in the array that will hold all of the
@@ -453,7 +303,7 @@ for j in range(len(simul_arr)):
 		sf_x = rad_sf_x[1]
 
 		# Extract the radius values used to calculate this structure function,
-		# for line of sight along the x and z axes.
+		# for line os sight along the x and z axes.
 		sf_rad_arr_z = rad_sf_z[0]
 		sf_rad_arr_x = rad_sf_x[0]
 
@@ -528,24 +378,12 @@ for j in range(len(simul_arr)):
 			3*np.floor(num_bins/4.0)+1], dx = 1.0) / (3*np.floor(num_bins/4.0)\
 			 - np.floor(num_bins/6.0))
 
-		# At this point, all of the statistics that need to be calculated for
-		# every value of gamma have been calculated.
-
-	# Convert the arrays that show the synchrotron map for each value of the 
-	# free parameter into a FITS file, and save it.
-	mat2FITS_Image(sync_param_z, filename = save_loc + short_simul[j] + '_' + obs_effect + '_z.fits')
-	mat2FITS_Image(sync_param_x, filename = save_loc + short_simul[j] + '_' + obs_effect + '_x.fits')
+	# At this point, all of the statistics that need to be calculated for
+	# every value of gamma have been calculated.
 
 	# Close the fits files, to save memory
 	sync_fits_z.close()
 	sync_fits_x.close()
-
-# If we are examining the effect of angular resolution, then change the array
-# of smoothing radii to the final resolutions
-if obs_effect == 'res':
-	# Replace the array of standard deviations with the array of final
-	# resolutions, so that the final resolutions are used in all plots
-	iter_array = final_res
 
 # When the code reaches this point, the statistics have been calculated for
 # every simulation and every value of gamma, so it is time to start plotting
@@ -555,15 +393,15 @@ if obs_effect == 'res':
 # Skewness vs sonic Mach number
 
 # Create a figure to display a plot of the skewness as a function of sonic
-# Mach number for all of the synchrotron maps, i.e. for all values of the free 
-# parameter related to the observational effect being studied.
+# Mach number for all of the synchrotron maps, i.e. for all values of the 
+# observing frequency
 fig1 = plt.figure()
 
 # Create an axis for this figure
 ax1 = fig1.add_subplot(111)
 
 # Plot the skewness as a function of sonic Mach number for various values of the
-# free parameter related to the observational effect being studied.
+# observing frequency.
 plt.plot(sonic_mach_sort, (skew_z_arr[0])[sonic_sort],'b-o',label = leg_string\
 	+'{}'.format(iter_array[0]))
 plt.plot(sonic_mach_sort, (skew_z_arr[free_num/2 - 1])[sonic_sort],'r-o',\
@@ -596,15 +434,15 @@ plt.close()
 # Skewness vs Alfvenic Mach number 
 
 # Create a figure to display a plot of the skewness as a function of Alfvenic
-# Mach number for all of the synchrotron maps, i.e. for all values of the free 
-# parameter related to the observational effect being studied.
+# Mach number for all of the synchrotron maps, i.e. for all values of the 
+# observing frequency.
 fig2 = plt.figure()
 
 # Create an axis for this figure
 ax2 = fig2.add_subplot(111)
 
 # Plot the skewness as a function of Alfvenic Mach number for various values of
-# the free parameter related to the observational effect being studied.
+# the observing frequency.
 plt.plot(alf_mach_sort, (skew_z_arr[0])[alf_sort],'b-o',label = leg_string\
 	+'{}'.format(iter_array[0]))
 plt.plot(alf_mach_sort, (skew_z_arr[free_num/2 - 1])[alf_sort],'r-o',\
@@ -634,16 +472,16 @@ print 'Plot of the skewness as a function of Alfvenic Mach number saved, zLOS'
 # Close the figure, now that it has been saved.
 plt.close()
 
-# Skewness vs Observational Effect - Low Magnetic Field
+# Skewness vs observing frequency - Low Magnetic Field
 
 # Create a figure to display a plot of the skewness as a function of the
-# observational effect, for simulations with b = 0.1 
+# observing frequency, for simulations with b = 0.1 
 fig3 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax3 = fig3.add_subplot(111)
 
-# Plot the skewness as a function of the observational effect for simulations
+# Plot the skewness as a function of the observing frequency for simulations
 # with b = 0.1
 plt.plot(iter_array, skew_z_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
 plt.plot(iter_array, skew_z_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
@@ -674,22 +512,22 @@ ax3.legend(loc='upper left', bbox_to_anchor=(1, 1))
 plt.savefig(save_loc + 'Skew_{}_b.1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
-# function of the observational effect has been saved
-print 'Plot of the skewness as a function of observational effect saved b=0.1, zLOS'
+# function of the observing frequency has been saved
+print 'Plot of the skewness as a function of observing frequency saved b=0.1, zLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()
 
-# Skewness vs Observational Effect - High Magnetic Field
+# Skewness vs observing frequency - High Magnetic Field
 
 # Create a figure to display a plot of the skewness as a function of the
-# observational effect, for simulations with b = 1 
+# observing frequency, for simulations with b = 1 
 fig4 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax4 = fig4.add_subplot(111)
 
-# Plot the skewness as a function of the observational effect for simulations
+# Plot the skewness as a function of the observing frequency for simulations
 # with b = 1
 plt.plot(iter_array, skew_z_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
 plt.plot(iter_array, skew_z_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
@@ -720,8 +558,8 @@ ax4.legend(loc='upper left', bbox_to_anchor=(1, 1))
 plt.savefig(save_loc + 'Skew_{}_b1_gam{}_z.png'.format(obs_effect,gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
-# function of the observational effect has been saved
-print 'Plot of the skewness as a function of observational effect saved b=1, zLOS'
+# function of the observing frequency has been saved
+print 'Plot of the skewness as a function of observing frequency saved b=1, zLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()
@@ -731,15 +569,15 @@ plt.close()
 # Skewness vs sonic Mach number
 
 # Create a figure to display a plot of the skewness as a function of sonic
-# Mach number for all of the synchrotron maps, i.e. for all values of the free 
-# parameter related to the observational effect being studied.
+# Mach number for all of the synchrotron maps, i.e. for all values of the 
+# observing frequency.
 fig5 = plt.figure()
 
 # Create an axis for this figure
 ax5 = fig5.add_subplot(111)
 
 # Plot the skewness as a function of sonic Mach number for various values of the
-# free parameter related to the observational effect being studied.
+# observing frequency.
 plt.plot(sonic_mach_sort, (skew_x_arr[0])[sonic_sort],'b-o',label = leg_string\
 	+'{}'.format(iter_array[0]))
 plt.plot(sonic_mach_sort, (skew_x_arr[free_num/2 - 1])[sonic_sort],'r-o',\
@@ -772,15 +610,15 @@ plt.close()
 # Skewness vs Alfvenic Mach number 
 
 # Create a figure to display a plot of the skewness as a function of Alfvenic
-# Mach number for all of the synchrotron maps, i.e. for all values of the free 
-# parameter related to the observational effect being studied.
+# Mach number for all of the synchrotron maps, i.e. for all values of the 
+# observing frequency.
 fig6 = plt.figure()
 
 # Create an axis for this figure
 ax6 = fig6.add_subplot(111)
 
 # Plot the skewness as a function of Alfvenic Mach number for various values of
-# the free parameter related to the observational effect being studied.
+# the observing frequency.
 plt.plot(alf_mach_sort, (skew_x_arr[0])[alf_sort],'b-o',label = leg_string\
 	+'{}'.format(iter_array[0]))
 plt.plot(alf_mach_sort, (skew_x_arr[free_num/2 - 1])[alf_sort],'r-o',\
@@ -810,16 +648,16 @@ print 'Plot of the skewness as a function of Alfvenic Mach number saved, xLOS'
 # Close the figure, now that it has been saved.
 plt.close()
 
-# Skewness vs Observational Effect - Low Magnetic Field
+# Skewness vs observing frequency - Low Magnetic Field
 
 # Create a figure to display a plot of the skewness as a function of the
-# observational effect, for simulations with b = 0.1 
+# observing frequency, for simulations with b = 0.1 
 fig7 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax7 = fig7.add_subplot(111)
 
-# Plot the skewness as a function of the observational effect for simulations
+# Plot the skewness as a function of the observing frequency for simulations
 # with b = 0.1
 plt.plot(iter_array, skew_x_arr[:,0],'b-o',label = '{}'.format(short_simul[0]))
 plt.plot(iter_array, skew_x_arr[:,1],'b--o',label= '{}'.format(short_simul[1]))
@@ -850,22 +688,22 @@ ax7.legend(loc='upper left', bbox_to_anchor=(1, 1))
 plt.savefig(save_loc + 'Skew_{}_b.1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
-# function of the observational effect has been saved
-print 'Plot of the skewness as a function of observational effect saved b=0.1, xLOS'
+# function of the observing frequency has been saved
+print 'Plot of the skewness as a function of observing frequency saved b=0.1, xLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()
 
-# Skewness vs Observational Effect - High Magnetic Field
+# Skewness vs observing frequency - High Magnetic Field
 
 # Create a figure to display a plot of the skewness as a function of the
-# observational effect, for simulations with b = 1 
+# observing frequency, for simulations with b = 1 
 fig8 = plt.figure(figsize = (10,6))
 
 # Create an axis for this figure
 ax8 = fig8.add_subplot(111)
 
-# Plot the skewness as a function of the observational effect for simulations
+# Plot the skewness as a function of the observing frequency for simulations
 # with b = 1
 plt.plot(iter_array, skew_x_arr[:,8],'b-o',label = '{}'.format(short_simul[8]))
 plt.plot(iter_array, skew_x_arr[:,9],'b--o',label= '{}'.format(short_simul[9]))
@@ -896,8 +734,8 @@ ax8.legend(loc='upper left', bbox_to_anchor=(1, 1))
 plt.savefig(save_loc + 'Skew_{}_b1_gam{}_x.png'.format(obs_effect,gamma), format = 'png')
 
 # Print a message to the screen to show that the plot of the skewness as a 
-# function of the observational effect has been saved
-print 'Plot of the skewness as a function of observational effect saved b=1, xLOS'
+# function of the observing frequency has been saved
+print 'Plot of the skewness as a function of observing frequency saved b=1, xLOS'
 
 # Close the figure, now that it has been saved.
 plt.close()

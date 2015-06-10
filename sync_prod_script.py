@@ -49,7 +49,7 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'c512b1p.0077/'
+spec_loc = 'b.1p.01_Oct_Burk/'
 
 # Create a variable that controls whether the line of sight is assumed to be
 # along the x, y or z axis of the data cube when constructing the synchrotron
@@ -67,7 +67,8 @@ data_loc =  simul_loc + spec_loc
 
 # Create an array that specifies the gamma values that were used to produce
 # these synchrotron emission maps
-gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
+# gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
+gamma_arr = np.array([1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4])
  
 # Open the FITS file that contains the x-component of the simulated magnetic
 # field
@@ -195,7 +196,7 @@ pri_hdu.header['CTYPE3'] = 'Gamma   '
 
 # Save the produced synchrotron maps as a FITS file
 mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4' +\
- line_o_sight + '.fits')
+ line_o_sight + 'gal.fits')
 
 # Print a message to state that the FITS file was saved successfully
 print 'FITS file of synchrotron maps saved successfully'

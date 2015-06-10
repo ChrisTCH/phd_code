@@ -84,11 +84,11 @@ gamma = gamma_arr[gam_index]
 # spec - Study how statistics change as spectral resolution is varied
 # noise - Study how statistics change as noise level is varied
 # res - Study how statistics change as the spatial resolution is varied
-obs_effect = 'res'
+obs_effect = 'noise'
 
 # Create a variable that controls how many data points are being used for the
 # free parameter
-free_num = 20
+free_num = 25
 
 # Create a variable that controls how many sub-channels are used if we are 
 # studying the effect of spectral resolution.
@@ -118,11 +118,11 @@ elif obs_effect == 'noise':
 	# deviation of the Gaussian distribution from which noise values are 
 	# generated. The standard deviation will be calculated by multiplying the
 	# median synchrotron intensity by the values in this array.
-	iter_array = np.linspace(0.02, 0.5, free_num)
+	iter_array = np.linspace(0.01, 0.5, free_num)
 
 	# Create a string that will specify which folder the synchrotron maps to
 	# use are in
-	map_direc = 'Noise_Gam2_Correct/'
+	map_direc = 'Noise_Ang3_Gam2_Fixed/'
 
 	# Create a string to be used in the titles of any plots that are made 
 	# against noise standard deviation
@@ -137,7 +137,7 @@ elif obs_effect == 'res':
 
 	# Create a string that will specify which folder the synchrotron maps to
 	# use are in
-	map_direc = 'Ang_Res_Gam2_Astropy/'
+	map_direc = 'Ang_Res_Gam2_Astropy_Final/'
 
 	# Create a string to be used in the titles of any plots that are made 
 	# against angular resolution
@@ -156,10 +156,17 @@ for j in range(len(short_simul)):
 	# Print a message to the screen to show what simulation is being used
 	print 'Starting calculation for simulation {}'.format(short_simul[j])
 
+	# # Open the FITS files that contain the simulated synchrotron intensity maps
+	# # for lines of sight along the z axis and x axis
+	# sync_fits_z = fits.open(data_loc + short_simul[j] + '_' + obs_effect + '_z.fits')
+	# sync_fits_x = fits.open(data_loc + short_simul[j] + '_' + obs_effect + '_x.fits')
+
 	# Open the FITS files that contain the simulated synchrotron intensity maps
 	# for lines of sight along the z axis and x axis
-	sync_fits_z = fits.open(data_loc + short_simul[j] + '_' + obs_effect + '_z.fits')
-	sync_fits_x = fits.open(data_loc + short_simul[j] + '_' + obs_effect + '_x.fits')
+	sync_fits_z = fits.open(data_loc + short_simul[j] +\
+	 'gam{}_z_fin.fits'.format(gamma))
+	sync_fits_x = fits.open(data_loc + short_simul[j] +\
+	 'gam{}_x_fin.fits'.format(gamma))
 
 	# Extract the data for the simulated synchrotron intensities
 	# This is a 3D data cube, where the slices along the third axis are the
@@ -258,6 +265,10 @@ for j in range(len(short_simul)):
 		label= leg_string +'{0:.2f}'.format(iter_array[12]))
 	plt.plot(rad_z_arr[16], sf_z_arr[16],'m-o',\
 		label= leg_string +'{0:.2f}'.format(iter_array[16]))
+	plt.plot(rad_z_arr[20], sf_z_arr[20],'y-o',\
+		label= leg_string +'{0:.2f}'.format(iter_array[20]))
+	plt.plot(rad_z_arr[24], sf_z_arr[24],'c-o',\
+		label= leg_string +'{0:.2f}'.format(iter_array[24]))
 
 	# Set the x-axis of the plot to be logarithmically scaled
 	plt.xscale('log')
@@ -304,6 +315,10 @@ for j in range(len(short_simul)):
 		label= leg_string +'{0:.2f}'.format(iter_array[12]))
 	plt.plot(rad_x_arr[16], sf_x_arr[16],'m-o',\
 		label= leg_string +'{0:.2f}'.format(iter_array[16]))
+	plt.plot(rad_x_arr[20], sf_x_arr[20],'y-o',\
+		label= leg_string +'{0:.2f}'.format(iter_array[20]))
+	plt.plot(rad_x_arr[24], sf_x_arr[24],'c-o',\
+		label= leg_string +'{0:.2f}'.format(iter_array[24]))
 
 	# Set the x-axis of the plot to be logarithmically scaled
 	plt.xscale('log')
