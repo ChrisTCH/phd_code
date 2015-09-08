@@ -52,10 +52,15 @@ from mat_plot import mat_plot
 from bayes_block import bayes_block
 
 # Create a string object which stores the directory of the CGPS data
-data_loc = '/Users/chrisherron/Documents/PhD/CGPS_Data/'
+data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
+
+# Create a string that will be used to control what Q and U FITS files are used
+# to perform calculations, and that will be appended into the filename of 
+# anything produced in this script
+save_append = 'high_lat'
 
 # Open the CGPS Stokes Q data FITS file
-cgps_Q_fits = fits.open(data_loc + 'cgps_Sto_Q_smooth2_390.fits')
+cgps_Q_fits = fits.open(data_loc + 'Sto_Q_{}.fits'.format(save_append))
 
 # Print the information about the Stokes Q file. This should show that there is
 # only a primary HDU, which contains all of the image data
@@ -72,7 +77,7 @@ print cgps_Q_hdr
 print ''
 
 # Open the CGPS Stokes U data FITS file
-cgps_U_fits = fits.open(data_loc + 'cgps_Sto_U_smooth2_390.fits')
+cgps_U_fits = fits.open(data_loc + 'Sto_U_{}.fits'.format(save_append))
 
 # Print the information about the Stokes U file. This should show that there is
 # only a primary HDU, which contains all of the image data
@@ -88,6 +93,18 @@ print cgps_U_hdr
 # Print a blank line to make the script output easier to read
 print ''
 
+# Open the CGPS Stokes I data FITS file
+cgps_I_fits = fits.open(data_loc + 'Sto_I_{}.fits'.format(save_append))
+
+# Print the information about the Stokes I file. This should show that there is
+# only a primary HDU, which contains all of the image data
+cgps_I_fits.info()
+# Print a blank line to make the script output easier to read
+print ''
+
+# Obtain the header of the primary HDU for the Stokes I data
+cgps_I_hdr = cgps_I_fits[0].header
+
 # Extract the size of each pixel from the header. This is the length of each 
 # side of the pixel (assumed to be square), in degrees. 
 pix_size_deg = cgps_Q_hdr['CDELT2']
@@ -97,6 +114,9 @@ Sto_Q = cgps_Q_fits[0].data
 
 # Extract the Stokes U data from the FITS file, which is held in the primary HDU
 Sto_U = cgps_U_fits[0].data
+
+# Extract the Stokes I data from the FITS file, which is held in the primary HDU
+Sto_I = cgps_I_fits[0].data
 
 # Print a message to the screen saying that the data was successfully 
 # extracted
@@ -130,58 +150,78 @@ print 'Derivatives of Stokes parameters successfully calculated.\n'
 
 #------------------------ POLARISATION INTENSITY -------------------------------
 
-# # Use the Stokes parameters to calculate the observed polarisation intensity at
-# # each pixel of the image.
-# polar_inten = calc_Polar_Inten(Sto_Q, Sto_U)
+# Use the Stokes parameters to calculate the observed polarisation intensity at
+# each pixel of the image.
+polar_inten = calc_Polar_Inten(Sto_Q, Sto_U)
 
-# # Print a message to the screen to show that the observed polarisation intensity
-# # has been calculated successfully.
-# print 'Observed polarisation intensity calculated successfully.'
+# Print a message to the screen to show that the observed polarisation intensity
+# has been calculated successfully.
+print 'Observed polarisation intensity calculated successfully.'
 
-# # Convert the matrix of polarisation intensity values into a FITS file, using
-# # the header information of the CGPS data. Also save the FITS file that is
-# # produced by the function.
-# polar_inten_FITS = mat2FITS_Image(polar_inten, cgps_Q_hdr,\
-# data_loc + 'cgps_polar_inten.fits')
+# Convert the matrix of polarisation intensity values into a FITS file, using
+# the header information of the CGPS data. Also save the FITS file that is
+# produced by the function.
+polar_inten_FITS = mat2FITS_Image(polar_inten, cgps_Q_hdr,\
+data_loc + 'Polar_Inten_{}.fits'.format(save_append))
 
-# # Print a message to the screen to show that the FITS file was produced and
-# # saved successfully.
-# print 'FITS file successfully saved for the polarisation intensity.'
+# Print a message to the screen to show that the FITS file was produced and
+# saved successfully.
+print 'FITS file successfully saved for the polarisation intensity.'
 
 # # Create an image of the observed polarisation intensity for the CGPS
 # # data using aplpy and the produced FITS file. This image is automatically
 # # saved using the given filename.
-# fits2aplpy(polar_inten_FITS, data_loc + 'cgps_polar_inten.png', \
+# fits2aplpy(polar_inten_FITS, data_loc+'Polar_Inten_{}.png'.format(save_append),\
 # colour = 'hot', convention = 'wells')
 
 # # Print a message to the screen to show that the image of the observed
 # # polarisation intensity has been successfully produced and saved.
 # print 'Image of the observed polarisation intensity successfully saved.\n'
 
+#------------------------- POLARISATION FRACTION -------------------------------
+
+# Use the Stokes parameters to calculate the observed polarisation fraction at
+# each pixel of the image.
+polar_frac = polar_inten / Sto_I
+
+# Print a message to the screen to show that the observed polarisation fraction
+# has been calculated successfully.
+print 'Observed polarisation fraction calculated successfully.'
+
+# Convert the matrix of polarisation fraction values into a FITS file, using
+# the header information of the CGPS data. Also save the FITS file that is
+# produced by the function.
+polar_frac_FITS = mat2FITS_Image(polar_frac, cgps_Q_hdr,\
+data_loc + 'Polar_Frac_{}.fits'.format(save_append))
+
+# Print a message to the screen to show that the FITS file was produced and
+# saved successfully.
+print 'FITS file successfully saved for the polarisation intensity.'
+
 #-------------------------- POLARISATION ANGLE --------------------------------
 
-# # Use the Stokes parameters to calculate the observed polarisation angle at
-# # each pixel of the image.
-# polar_angle = calc_Polar_Angle(Sto_Q, Sto_U)
+# Use the Stokes parameters to calculate the observed polarisation angle at
+# each pixel of the image.
+polar_angle = calc_Polar_Angle(Sto_Q, Sto_U)
 
-# # Print a message to the screen to show that the observed polarisation angle
-# # has been calculated successfully.
-# print 'Observed polarisation angle calculated successfully.'
+# Print a message to the screen to show that the observed polarisation angle
+# has been calculated successfully.
+print 'Observed polarisation angle calculated successfully.'
 
-# # Convert the matrix of polarisation angle values into a FITS file, using
-# # the header information of the CGPS data. Also save the FITS file that is
-# # produced by the function.
-# polar_angle_FITS = mat2FITS_Image(polar_angle, cgps_Q_hdr,\
-# data_loc + 'cgps_polar_angle.fits')
+# Convert the matrix of polarisation angle values into a FITS file, using
+# the header information of the CGPS data. Also save the FITS file that is
+# produced by the function.
+polar_angle_FITS = mat2FITS_Image(polar_angle, cgps_Q_hdr,\
+data_loc + 'Polar_Angle_{}.fits'.format(save_append))
 
-# # Print a message to the screen to show that the FITS file was produced and
-# # saved successfully.
-# print 'FITS file successfully saved for the polarisation angle.'
+# Print a message to the screen to show that the FITS file was produced and
+# saved successfully.
+print 'FITS file successfully saved for the polarisation angle.'
 
 # # Create an image of the observed polarisation angle for the CGPS
 # # data using aplpy and the produced FITS file. This image is automatically
 # # saved using the given filename.
-# fits2aplpy(polar_angle_FITS, data_loc + 'cgps_polar_angle.png', \
+# fits2aplpy(polar_angle_FITS, data_loc+'Polar_Angle_{}.png'.format(save_append),\
 # colour = 'RdBu', vmin = -90.0, vmax = 90.0, convention = 'wells')
 
 # # Print a message to the screen to show that the image of the observed
@@ -202,23 +242,23 @@ print 'Magnitude of the polarisation gradient calculated successfully.'
 # the header information of the CGPS data. Also save the FITS file that is
 # produced by the function.
 polar_grad_FITS = mat2FITS_Image(polar_grad, cgps_Q_hdr,\
-data_loc + 'cgps_polar_grad_390.fits')
+data_loc + 'Polar_Grad_{}.fits'.format(save_append))
 
 # Print a message to the screen to show that the FITS file was produced and
 # saved successfully.
 print 'FITS file successfully saved for the magnitude of the polarisation ' + \
 'gradient.'
 
-# Create an image of the magnitude of the polarisation gradient for the CGPS
-# data using aplpy and the produced FITS file. This image is automatically
-# saved using the given filename.
-fits2aplpy(polar_grad_FITS, data_loc + 'cgps_polar_grad_390.png', \
-colour = 'hot', convention = 'wells')
+# # Create an image of the magnitude of the polarisation gradient for the CGPS
+# # data using aplpy and the produced FITS file. This image is automatically
+# # saved using the given filename.
+# fits2aplpy(polar_grad_FITS, data_loc + 'Polar_Grad_{}.png'.format(save_append),\
+# colour = 'hot', convention = 'wells')
 
-# Print a message to the screen to show that the image of the magnitude of the
-# polarisation gradient has been successfully produced and saved.
-print 'Image of the magnitude of the polarisation gradient successfully saved.'\
-+ '\n'
+# # Print a message to the screen to show that the image of the magnitude of the
+# # polarisation gradient has been successfully produced and saved.
+# print 'Image of the magnitude of the polarisation gradient successfully saved.'\
+# + '\n'
 
 #------------------------ POLARISATION GRADIENT ANGLE -------------------------
 

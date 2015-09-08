@@ -209,6 +209,10 @@ for i in range(len(spec_locs)):
 # Create a figure to hold all of the subplots
 fig = plt.figure(1, figsize=(9,6), dpi = 300)
 
+# Create an array of marker symbols, so that the plot for each gamma value has
+# a different plot symbol
+symbol_arr = ['o','^','s','*']
+
 # Create an axis for the first subplot to be produced, which is for the low 
 # magnetic field, low pressure simulation
 ax1 = fig.add_subplot(221)
@@ -216,7 +220,7 @@ ax1 = fig.add_subplot(221)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the normalised correlation function for this simulation, for this gamma
-	plt.plot(corr_rad_arr[0,i], norm_corr_arr[0,i], '-o')
+	plt.plot(corr_rad_arr[0,i], norm_corr_arr[0,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(corr_rad_arr[0,0])), \
@@ -236,7 +240,7 @@ ax2 = fig.add_subplot(222, sharey = ax1)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the normalised correlation function for this simulation, for this gamma
-	plt.plot(corr_rad_arr[1,i], norm_corr_arr[1,i], '-o')
+	plt.plot(corr_rad_arr[1,i], norm_corr_arr[1,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(corr_rad_arr[1,0])), \
@@ -259,7 +263,7 @@ ax3 = fig.add_subplot(223, sharex = ax1)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the normalised correlation function for this simulation, for this gamma
-	plt.plot(corr_rad_arr[2,i], norm_corr_arr[2,i], '-o')
+	plt.plot(corr_rad_arr[2,i], norm_corr_arr[2,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(corr_rad_arr[2,0])), \
@@ -276,7 +280,8 @@ ax4 = fig.add_subplot(224, sharex = ax2, sharey = ax3)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the normalised correlation function for this simulation, for this gamma
-	plt.plot(corr_rad_arr[3,i], norm_corr_arr[3,i], '-o', label = 'Gamma={}'.format(gamma_arr[i]))
+	plt.plot(corr_rad_arr[3,i], norm_corr_arr[3,i], '-' + symbol_arr[i],\
+	 label = 'Gamma={}'.format(gamma_arr[i]))
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(corr_rad_arr[3,0])), \
@@ -293,23 +298,23 @@ plt.figtext(0.5, 0.0, 'Radial Separation [pixels]', ha = 'center', \
 	va = 'bottom', fontsize = 20)
 
 # Add a label to the y-axis
-plt.figtext(0.03, 0.5, 'Normalized Correlation Function', ha = 'left', \
+plt.figtext(0.03, 0.5, 'NCF Sync Intensity', ha = 'left', \
 	va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Force the legend to appear on the plot
 plt.legend(fontsize = 10)
 
 # Add some text to the figure, to label the left plot as figure a
-plt.figtext(0.19, 0.95, 'a) Sim 3: b.1p.01', fontsize = 18)
+plt.figtext(0.19, 0.95, 'a) Ms5.82Ma1.76', fontsize = 18)
 
 # Add some text to the figure, to label the left plot as figure b
-plt.figtext(0.61, 0.95, 'b) Sim 8: b.1p2', fontsize = 18)
+plt.figtext(0.61, 0.95, 'b) Ms0.47Ma1.72', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure c
-plt.figtext(0.19, 0.475, 'c) Sim 11: b1p.01', fontsize = 18)
+plt.figtext(0.19, 0.475, 'c) Ms5.47Ma0.52', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure d
-plt.figtext(0.61, 0.475, 'd) Sim 16: b1p2', fontsize = 18)
+plt.figtext(0.61, 0.475, 'd) Ms0.47Ma0.65', fontsize = 18)
 
 # Make sure that all of the labels are clearly visible in the plot
 #plt.tight_layout()
@@ -338,7 +343,7 @@ ax1 = fig.add_subplot(221)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the structure function for this simulation, for this gamma
-	plt.plot(sf_rad_arr[0,i], sf_arr[0,i], '-o')
+	plt.plot(sf_rad_arr[0,i], sf_arr[0,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(sf_rad_arr[0,0])), \
@@ -361,7 +366,7 @@ ax2 = fig.add_subplot(222, sharey = ax1)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the structure function for this simulation, for this gamma
-	plt.plot(sf_rad_arr[1,i], sf_arr[1,i], '-o')
+	plt.plot(sf_rad_arr[1,i], sf_arr[1,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(sf_rad_arr[1,0])), \
@@ -387,7 +392,7 @@ ax3 = fig.add_subplot(223, sharex = ax1)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the structure function for this simulation, for this gamma
-	plt.plot(sf_rad_arr[2,i], sf_arr[2,i], '-o')
+	plt.plot(sf_rad_arr[2,i], sf_arr[2,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(sf_rad_arr[2,0])), \
@@ -407,7 +412,8 @@ ax4 = fig.add_subplot(224, sharex = ax2, sharey = ax3)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the structure function for this simulation, for this gamma
-	plt.plot(sf_rad_arr[3,i], sf_arr[3,i], '-o', label = 'Gamma={}'.format(gamma_arr[i]))
+	plt.plot(sf_rad_arr[3,i], sf_arr[3,i], '-' + symbol_arr[i],\
+	 label = 'Gamma={}'.format(gamma_arr[i]))
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(sf_rad_arr[3,0])), \
@@ -427,23 +433,23 @@ plt.figtext(0.5, 0.0, 'Radial Separation [pixels]', ha = 'center', \
 	va = 'bottom', fontsize = 20)
 
 # Add a label to the y-axis
-plt.figtext(0.03, 0.5, 'Structure Function', ha = 'left', \
+plt.figtext(0.03, 0.5, 'Structure Function Amplitude', ha = 'left', \
 	va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Force the legend to appear on the plot
 plt.legend(loc = 4, fontsize = 10)
 
 # Add some text to the figure, to label the left plot as figure a
-plt.figtext(0.19, 0.95, 'a) Sim 3: b.1p.01', fontsize = 18)
+plt.figtext(0.19, 0.95, 'a) Ms5.82Ma1.76', fontsize = 18)
 
 # Add some text to the figure, to label the left plot as figure b
-plt.figtext(0.61, 0.95, 'b) Sim 8: b.1p2', fontsize = 18)
+plt.figtext(0.61, 0.95, 'b) Ms0.47Ma1.72', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure c
-plt.figtext(0.19, 0.475, 'c) Sim 11: b1p.01', fontsize = 18)
+plt.figtext(0.19, 0.475, 'c) Ms5.47Ma0.52', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure d
-plt.figtext(0.61, 0.475, 'd) Sim 16: b1p2', fontsize = 18)
+plt.figtext(0.61, 0.475, 'd) Ms0.47Ma0.65', fontsize = 18)
 
 # Make sure that all of the labels are clearly visible in the plot
 #plt.tight_layout()
@@ -472,7 +478,7 @@ ax1 = fig.add_subplot(221)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the quadrupole ratio for this simulation, for this gamma
-	plt.plot(quad_rad_arr[0,i], quad_arr[0,i], '-o')
+	plt.plot(quad_rad_arr[0,i], quad_arr[0,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(quad_rad_arr[0,0])), \
@@ -492,7 +498,7 @@ ax2 = fig.add_subplot(222, sharey = ax1)
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the quadrupole ratio for this simulation, for this gamma
-	plt.plot(quad_rad_arr[1,i], quad_arr[1,i], '-o')
+	plt.plot(quad_rad_arr[1,i], quad_arr[1,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(quad_rad_arr[1,0])), \
@@ -510,12 +516,12 @@ plt.setp( ax2.get_yticklabels(), visible=False)
 # Create an axis for the third subplot to be produced, which is for the high
 # magnetic field, low pressure simulation. Make the x axis limits the same as
 # for the first plot
-ax3 = fig.add_subplot(223, sharex = ax1)
+ax3 = fig.add_subplot(223, sharex = ax1, sharey = ax1)
 
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the quadrupole ratio for this simulation, for this gamma
-	plt.plot(quad_rad_arr[2,i], quad_arr[2,i], '-o')
+	plt.plot(quad_rad_arr[2,i], quad_arr[2,i], '-' + symbol_arr[i])
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(quad_rad_arr[2,0])), \
@@ -527,12 +533,13 @@ ax3.set_xscale('log')
 # Create an axis for the fourth subplot to be produced, which is for the high
 # magnetic field, high pressure simulation. Make the x axis limits the same as
 # for the second plot, and the y axis limits the same as for the third plot
-ax4 = fig.add_subplot(224, sharex = ax2, sharey = ax3)
+ax4 = fig.add_subplot(224, sharex = ax2, sharey = ax1)
 
 # Loop over the values of gamma to produce plots for each gamma
 for i in range(len(gamma_arr)):
 	# Plot the quadrupole ratio for this simulation, for this gamma
-	plt.plot(quad_rad_arr[3,i], quad_arr[3,i], '-o', label = 'Gamma={}'.format(gamma_arr[i]))
+	plt.plot(quad_rad_arr[3,i], quad_arr[3,i], '-' + symbol_arr[i],\
+	 label = 'Gamma={}'.format(gamma_arr[i]))
 
 # Plot a faded dashed line to represent the line y = 0
 plt.plot(np.linspace(0,1000,len(quad_rad_arr[3,0])), \
@@ -556,16 +563,16 @@ plt.figtext(0.03, 0.5, 'Quadrupole Ratio', ha = 'left', \
 plt.legend(fontsize = 10)
 
 # Add some text to the figure, to label the left plot as figure a
-plt.figtext(0.19, 0.95, 'a) Sim 3: b.1p.01', fontsize = 18)
+plt.figtext(0.19, 0.95, 'a) Ms5.82Ma1.76', fontsize = 18)
 
 # Add some text to the figure, to label the left plot as figure b
-plt.figtext(0.61, 0.95, 'b) Sim 8: b.1p2', fontsize = 18)
+plt.figtext(0.61, 0.95, 'b) Ms0.47Ma1.72', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure c
-plt.figtext(0.19, 0.475, 'c) Sim 11: b1p.01', fontsize = 18)
+plt.figtext(0.19, 0.475, 'c) Ms5.47Ma0.52', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure d
-plt.figtext(0.61, 0.475, 'd) Sim 16: b1p2', fontsize = 18)
+plt.figtext(0.61, 0.475, 'd) Ms0.47Ma0.65', fontsize = 18)
 
 # Make sure that all of the labels are clearly visible in the plot
 #plt.tight_layout()

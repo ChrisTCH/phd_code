@@ -169,7 +169,7 @@ leg_string = 'Noise = '
 
 # Create a variable that represents the standard deviation of the 
 # Gaussian used to smooth the synchrotron maps. Value is in pixels.
-smooth_stdev = 3
+smooth_stdev = 1.3
 
 # Create a variable representing the final angular resolution of
 # the image after smoothing. The final resolution is calculated by 

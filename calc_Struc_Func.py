@@ -7,7 +7,10 @@
 # function is returned as an array to the calling function.                   #
 #                                                                             #
 # Author: Chris Herron                                                        #
+# Email: cher7851@uni.sydney.edu.au                                           #
 # Start Date: 7/8/2014                                                        #
+# To be published as Herron et al (in prep), please contact before using in   #
+# any publications, and do not distribute without permission.                 #
 #                                                                             #
 #-----------------------------------------------------------------------------#
 

@@ -264,7 +264,7 @@ ax1 = fig.add_subplot(221)
 
 # Plot the skewness as a function of sonic Mach number 
 plt.scatter(sonic_mach_arr[0:8], skew_arr[0:8], s = 35, c = 'b')
-plt.scatter(sonic_mach_arr[8:], skew_arr[8:], s = 35, c = 'r')
+plt.scatter(sonic_mach_arr[8:], skew_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Add a label to the y-axis
 plt.ylabel('Skewness', fontsize = 20)
@@ -279,7 +279,7 @@ ax2 = fig.add_subplot(222, sharey = ax1)
 
 # Plot the skewness as a function of Alfvenic Mach number
 plt.scatter(alf_mach_arr[0:8], skew_arr[0:8], s = 35, c = 'b')
-plt.scatter(alf_mach_arr[8:], skew_arr[8:], s = 35, c = 'r')
+plt.scatter(alf_mach_arr[8:], skew_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Make the x axis tick labels invisible
 plt.setp( ax2.get_xticklabels(), visible=False)
@@ -294,7 +294,7 @@ ax3 = fig.add_subplot(223, sharex = ax1)
 
 # Plot the kurtosis as a function of sonic Mach number
 plt.scatter(sonic_mach_arr[0:8], kurt_arr[0:8], s = 35, c = 'b')
-plt.scatter(sonic_mach_arr[8:], kurt_arr[8:], s = 35, c = 'r')
+plt.scatter(sonic_mach_arr[8:], kurt_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -309,7 +309,7 @@ ax4 = fig.add_subplot(224, sharex = ax2, sharey = ax3)
 
 # Plot the kurtosis as a function of Alfvenic Mach number
 plt.scatter(alf_mach_arr[0:8], kurt_arr[0:8], s = 35, c = 'b')
-plt.scatter(alf_mach_arr[8:], kurt_arr[8:], s = 35, c = 'r')
+plt.scatter(alf_mach_arr[8:], kurt_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)
@@ -352,7 +352,7 @@ ax1 = fig.add_subplot(121)
 
 # Plot m as a function of sonic Mach number
 plt.scatter(sonic_mach_arr[0:8], m_arr[0:8], s = 35, c = 'b')
-plt.scatter(sonic_mach_arr[8:], m_arr[8:], s = 35, c = 'r')
+plt.scatter(sonic_mach_arr[8:], m_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -366,7 +366,7 @@ ax2 = fig.add_subplot(122, sharey = ax1)
 
 # Plot m as a function of Alfvenic Mach number 
 plt.scatter(alf_mach_arr[0:8], m_arr[0:8], s = 35, c = 'b')
-plt.scatter(alf_mach_arr[8:], m_arr[8:], s = 35, c = 'r')
+plt.scatter(alf_mach_arr[8:], m_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Make the y axis tick labels invisible
 plt.setp( ax2.get_yticklabels(), visible=False)
@@ -404,7 +404,7 @@ ax1 = fig.add_subplot(121)
 # Plot the integrated magnitude of the quad / mono ratio as a function of sonic 
 # Mach number 
 plt.scatter(sonic_mach_arr[0:8], int_quad_arr[0:8], s = 35, c = 'b')
-plt.scatter(sonic_mach_arr[8:], int_quad_arr[8:], s = 35, c = 'r')
+plt.scatter(sonic_mach_arr[8:], int_quad_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Add a label to the x-axis
 plt.xlabel('Sonic Mach Number', fontsize = 20)
@@ -420,7 +420,7 @@ ax2 = fig.add_subplot(122, sharey = ax1)
 # Plot the integrated magnitude of the quad / mono ratio as a function of 
 # Alfvenic Mach number
 plt.scatter(alf_mach_arr[0:8], int_quad_arr[0:8], s = 35, c = 'b')
-plt.scatter(alf_mach_arr[8:], int_quad_arr[8:], s = 35, c = 'r')
+plt.scatter(alf_mach_arr[8:], int_quad_arr[8:], s = 65, c = 'r', marker = '*')
 
 # Add a label to the x-axis
 plt.xlabel('Alfvenic Mach Number', fontsize = 20)

@@ -77,6 +77,23 @@ low_B_short = ['b.1p.01', 'b.1p.1', 'b.1p.7', 'b.1p2']
 # simulations used to produce plots
 high_B_short = ['b1p.01', 'b1p.1', 'b1p.7', 'b1p2']
 
+# Create strings giving the simulation codes in terms of Mach numbers, for the
+# low magnetic field simulations used to produce plots
+low_B_short_M = ['Ms5.82Ma1.76', 'Ms2.14Ma1.86', 'Ms0.81Ma1.74', 'Ms0.47Ma1.72']
+
+# Create strings giving the simulation codes in terms of Mach numbers, for the
+# high magnetic field simulations used to produce plots
+high_B_short_M = ['Ms5.47Ma0.52', 'Ms2.23Ma0.67', 'Ms0.84Ma0.7', 'Ms0.47Ma0.65']
+
+# Create an array specifying the sonic Mach numbers for the low and
+# high magnetic field simulations
+low_B_mach = [5.8, 2.1, 0.8, 0.4]
+high_B_mach = [5.5, 2.2, 0.8, 0.5]
+
+# Create an array of marker symbols, so that the plot for each gamma value has
+# a different plot symbol
+symbol_arr = ['o','^','s','*']
+
 # Create an array that specifies the value of gamma used to produce each 
 # synchrotron emissivity cube
 gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
@@ -307,7 +324,8 @@ ax1 = fig.add_subplot(221)
 for i in range(len(low_B_sims)):
 	# Plot the skewness for this simulation, against the relative angle between
 	# the line of sight and the mean magnetic field
-	plt.plot(rel_ang_arr, skew_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
+	plt.plot(rel_ang_arr, skew_low_arr[i], '-' + symbol_arr[i],\
+	 label = '{}'.format(low_B_short_M[i]))
 
 # Force the legends to appear on the plot
 plt.legend(loc = 3, fontsize = 10)
@@ -327,7 +345,8 @@ ax2 = fig.add_subplot(222, sharey = ax1)
 for i in range(len(high_B_sims)):
 	# Plot the skewness for this simulation, against the relative angle between
 	# the line of sight and the mean magnetic field
-	plt.plot(rel_ang_arr, skew_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
+	plt.plot(rel_ang_arr, skew_high_arr[i], '-' + symbol_arr[i],\
+	 label = '{}'.format(high_B_short_M[i]))
 
 # Force the legends to appear on the plot
 plt.legend(loc = 3, fontsize = 10)
@@ -347,7 +366,7 @@ ax3 = fig.add_subplot(223, sharex = ax1)
 for i in range(len(low_B_sims)):
 	# Plot the kurtosis for this simulation, against the relative angle between
 	# the line of sight and the mean magnetic field
-	plt.plot(rel_ang_arr, kurt_low_arr[i], '-o')
+	plt.plot(rel_ang_arr, kurt_low_arr[i], '-' + symbol_arr[i])
 
 # Add a label to the y-axis
 plt.ylabel('Kurtosis', fontsize = 20)
@@ -361,7 +380,7 @@ ax4 = fig.add_subplot(224, sharex = ax2)
 for i in range(len(high_B_sims)):
 	# Plot the kurtosis for this simulation, against the relative angle between
 	# the line of sight and the mean magnetic field
-	plt.plot(rel_ang_arr, kurt_high_arr[i], '-o')
+	plt.plot(rel_ang_arr, kurt_high_arr[i], '-' + symbol_arr[i])
 
 # Add a label to the x-axis
 plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B [degrees]', ha = 'center', \
@@ -405,7 +424,8 @@ ax1 = fig.add_subplot(121)
 for i in range(len(low_B_sims)):
 	# Plot the structure function slope as a function of the relative angle 
 	# between the line of sight and the mean magnetic field for this simulation
-	plt.plot(rel_ang_arr, sf_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
+	plt.plot(rel_ang_arr, sf_low_arr[i], '-' + symbol_arr[i],\
+	 label = '{}'.format(low_B_short_M[i]))
 
 # Force the legend to appear on the plot
 plt.legend(loc = 4, fontsize = 10)
@@ -422,7 +442,8 @@ ax2 = fig.add_subplot(122)
 for i in range(len(high_B_sims)):
 	# Plot the structure function slope as a function of the relative angle 
 	# between the line of sight and the mean magnetic field for this simulation
-	plt.plot(rel_ang_arr, sf_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
+	plt.plot(rel_ang_arr, sf_high_arr[i], '-' + symbol_arr[i],\
+	 label = '{}'.format(high_B_short_M[i]))
 
 # Add a label to the x-axis
 plt.figtext(0.5, 0.0, 'Angle Between LOS and Mean B [degrees]', ha = 'center', \
@@ -463,7 +484,8 @@ ax1 = fig.add_subplot(121)
 for i in range(len(low_B_sims)):
 	# Plot the integrated quadrupole ratio as a function of the relative angle 
 	# between the line of sight and the mean magnetic field for this simulation
-	plt.plot(rel_ang_arr, quad_low_arr[i], '-o', label = '{}'.format(low_B_short[i]))
+	plt.plot(rel_ang_arr, quad_low_arr[i], '-' + symbol_arr[i],\
+	 label = '{}'.format(low_B_short_M[i]))
 
 # Force the legend to appear on the plot
 plt.legend(loc = 2, fontsize = 10)
@@ -481,7 +503,8 @@ ax2 = fig.add_subplot(122, sharey = ax1)
 for i in range(len(high_B_sims)):
 	# Plot the integrated quadrupole ratio as a function of the relative angle 
 	# between the line of sight and the mean magnetic field for this simulation
-	plt.plot(rel_ang_arr, quad_high_arr[i], '-o', label = '{}'.format(high_B_short[i]))
+	plt.plot(rel_ang_arr, quad_high_arr[i], '-' + symbol_arr[i],\
+	 label = '{}'.format(high_B_short_M[i]))
 
 # Make the y axis tick labels invisible
 plt.setp( ax2.get_yticklabels(), visible=False)

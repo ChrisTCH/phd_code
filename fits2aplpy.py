@@ -17,7 +17,8 @@ import aplpy
 # Define the function fits2aplpy, which will produce an image from the given
 # FITS file object
 def fits2aplpy(fits_file, filename, dimensions = [0,1], slices = [], \
-colour = 'gray', vmin = None, vmax = None, convention = None, stretch = 'linear'):
+colour = 'gray', vmin = None, vmax = None, convention = None,\
+figsize = (8,6), stretch = 'linear', save_dpi = 600):
     '''
     Description
         This function produces an image of a FITS file image object in aplpy.
@@ -61,9 +62,16 @@ colour = 'gray', vmin = None, vmax = None, convention = None, stretch = 'linear'
         convention - A string to be used if a FITS header can be interpreted
                      in multiple ways. For a Cartesian CAR projection, this
                      may be 'wells' or 'calabretta'.
+        figsize - The size of the figure to be produced. This variable is the 
+                  same as the corresponding figsize variable of the matplotlib 
+                  figure instance, and is passed directly to that constructor.
+                  The default is 8 inches across and 6 inches high.
         stretch - A string describing the scaling to be applied to the colour
                   map. Default is 'linear'. Other options are 'log', 'sqrt',
                   'arcsinh' and 'power'.
+        save_dpi - The number of dots per inch to use in the figure that is to 
+                   be saved. This should be given as an integer. The default is 
+                   600.
                    
     Output
         fig - This function returns the aplpy FITSFigure instance which is 
@@ -75,11 +83,12 @@ colour = 'gray', vmin = None, vmax = None, convention = None, stretch = 'linear'
     # header, then create the disply frame as usual
     if convention == None:
         # Create a display frame for the image
-        fig = aplpy.FITSFigure(fits_file, dimensions = dimensions, slices = slices)
+        fig = aplpy.FITSFigure(fits_file, dimensions = dimensions,\
+         slices = slices, figsize = figsize)
     else:
         # In this case, create a display frame using the given convention
         fig = aplpy.FITSFigure(fits_file, dimensions = dimensions, slices = slices,\
-         convention = convention)
+         figsize = figsize, convention = convention)
     
     # Check to see if a grayscale or colour scale image is being made
     if colour == 'gray':
@@ -117,7 +126,7 @@ colour = 'gray', vmin = None, vmax = None, convention = None, stretch = 'linear'
     fig.add_colorbar()
     
     # Save the image using the given filename
-    fig.save(filename, dpi = 600, max_dpi = 600)
+    fig.save(filename, dpi = save_dpi)
     
     # Return the figure to the caller
     return fig

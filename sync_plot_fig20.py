@@ -2,28 +2,31 @@
 #                                                                              #
 # This code is a Python script that reads in arrays of synchrotron intensity,  #
 # and calculates the structure function slope and integrated quadrupole ratio  #
-# for different simulations as a function of an observational effect. Two      #
-# plots are produced, looking at noise and angular resolution.                 #
+# for different simulations as a function of the final noise level of the      #
+# image, for a fixed angular resolution.                                       #
 #                                                                              #
 # Author: Chris Herron                                                         #
-# Start Date: 13/2/2015                                                        #
+# Start Date: 8/8/2015                                                         #
 #                                                                              #
 #------------------------------------------------------------------------------#
 
 # First import numpy for array handling, matplotlib for plotting, astropy.io
 # for fits manipulation, astropy.convolution for convolution functions, 
-# scipy.stats for calculating statistical quantities
+# scipy.stats for calculating statistical quantities,
+# scipy.ndimage for smoothing and convolution
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
 from astropy.convolution import convolve_fft, Gaussian2DKernel
 from scipy import stats
+from scipy import ndimage
 
 # Import the functions that calculate the structure and correlation functions
-# using FFT, as well as the function that calculates the radially averaged 
-# structure or correlation functions. Also import the function that calculates
-# multipoles of the 2D structure functions, and the function that calculates the
-# magnitude and argument of the quadrupole ratio
+# using FFT, the function that calculates the radially averaged structure or 
+# correlation functions, the function that calculates multipoles of 2D images,
+# and the function that calculates the magnitude and argument of the quadrupole
+# ratio. The function that converts Numpy arrays into FITS files is also 
+# imported.
 from sf_fft import sf_fft
 from cf_fft import cf_fft
 from sfr import sfr
@@ -31,14 +34,14 @@ from calc_multipole_2D import calc_multipole_2D
 from calc_quad_ratio import calc_quad_ratio
 
 # Set a variable to hold the number of bins to use in calculating the 
-# correlation functions
+# structure functions
 num_bins = 25
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
 simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 
-# Create a string for the specific simulated data sets to use in calculations.
+# Create a string for the specific simulated data set to use in calculations.
 # The directories end in:
 # b.1p.1_Oct_Burk
 # b.1p.01_Oct_Burk
@@ -86,6 +89,14 @@ low_B_short_M = ['Ms5.82Ma1.76', 'Ms2.14Ma1.86', 'Ms0.81Ma1.74', 'Ms0.47Ma1.72']
 # high magnetic field simulations used to produce plots
 high_B_short_M = ['Ms5.47Ma0.52', 'Ms2.23Ma0.67', 'Ms0.84Ma0.7', 'Ms0.47Ma0.65']
 
+# Create strings giving the simulation codes in terms of sonic Mach numbers, for
+# the low magnetic field simulations used to produce plots
+low_B_short_M_latex = ['$M_s = 5.82$', '$M_s = 2.14$', '$M_s = 0.81$', '$M_s = 0.47$']
+
+# Create strings giving the simulation codes in terms of sonic Mach numbers, for
+# the high magnetic field simulations used to produce plots
+high_B_short_M_latex = ['$M_s = 5.47$', '$M_s = 2.23$', '$M_s = 0.84$', '$M_s = 0.47$']
+
 # Create an array of marker symbols, so that the plot for each gamma value has
 # a different plot symbol
 symbol_arr = ['o','^','s','*']
@@ -101,57 +112,40 @@ gam_index = 2
 # Create a variable that just holds the value of gamma being used
 gamma = gamma_arr[gam_index]
 
-# Create a string that determines what observational effect will be studied
-# String can be one of the following:
-# noise - Study how statistics change as noise level is varied
-# res - Study how statistics change as the spatial resolution is varied
-obs_effect = 'noise'
-
 # Create a variable that controls how many data points are being used for the
 # free parameter
-free_num = 20
+free_num = 25
 
-# Depending on what observational effect is being studied, create an array of 
-# values over which we will iterate. This array represents the values of the 
-# free parameter related to the observational effect 
-if obs_effect == 'noise':
-	# Create an array of values that will be used to determine the standard
-	# deviation of the Gaussian distribution from which noise values are 
-	# generated. The standard deviation will be calculated by multiplying the
-	# median synchrotron intensity by the values in this array.
-	iter_array = np.linspace(0.02, 0.5, free_num)
+# Create an array of values that will be used to determine the standard
+# deviation of the Gaussian distribution from which noise values are 
+# generated. The standard deviation will be calculated by multiplying the
+# median synchrotron intensity by the values in this array.
+iter_array = np.linspace(0.02, 0.7, free_num)
 
-	# Create a label for the x-axis of plots that are made against noise
-	# standard deviation
-	xlabel = 'Noise StandDev [frac median inten]'
+# Create an array that will hold the values for the noise level of the final
+# synchrotron maps produced, in the same units as the generated noise. 
+# Each row corresponds to a simulation, and each column corresponds to a 
+# different noise value. There is one array for low magnetic field
+# simulations, and another for high magnetic field simulations.
+final_noise_low = np.zeros((len(low_B_short), len(iter_array)))
+final_noise_high = np.zeros((len(high_B_short), len(iter_array)))
 
-	# Create a string to be used in the titles of any plots that are made 
-	# against noise standard deviation
-	title_string = 'Noise StandDev'
+# Create a variable that represents the standard deviation of the 
+# Gaussian used to smooth the synchrotron maps. Value is in pixels.
+smooth_stdev = 1.3
 
-	# Create a string to be used in legends involving spectral channel width
-	leg_string = 'Noise = ' 
-elif obs_effect == 'res':
-	# Create an array of values that represent the standard deviation of the 
-	# Gaussian used to smooth the synchrotron maps. All values are in pixels.
-	iter_array = np.linspace(1.0, 50.0, free_num)
+# Create a variable representing the final angular resolution of
+# the image after smoothing. The final resolution is calculated by 
+# quadrature from the initial resolution (1 pixel) and the standard 
+# deviation of the convolving Gaussian.
+final_res = np.sqrt(1.0 + np.power(smooth_stdev,2.0))
 
-	# Create an array of values representing the final angular resolution of
-	# the image after smoothing. The final resolution is calculated by 
-	# quadrature from the initial resolution (1 pixel) and the standard 
-	# deviation of the convolving Gaussian.
-	final_res = np.sqrt(1.0 + np.power(iter_array,2.0))
+# Print the final resolution to the screen
+print 'The final resolution is {} pixels'.format(final_res)
 
-	# Create a label for the x-axis of plots that are made against angular 
-	# resolution
-	xlabel = 'Angular Resolution [pixels]'
-
-	# Create a string to be used in the titles of any plots that are made 
-	# against angular resolution
-	title_string = 'Angular Resolution'
-
-	# Create a string to be used in legends involving angular resolution
-	leg_string = 'AngRes = ' 
+# Create a label for the x-axis of the produced plot
+#xlabel = 'Noise StandDev [frac median inten]'
+xlabel = 'Noise-to-Signal Ratio'
 
 # Create a two dimensional array that will hold all of the structure function 
 # slope values for the different low magnetic field simulations. The first index
@@ -174,6 +168,10 @@ quad_low_arr = np.zeros((len(low_B_sims), len(iter_array)))
 # index gives the simulation the second gives the strength of the observational 
 # effect
 quad_high_arr = np.zeros((len(high_B_sims), len(iter_array)))
+
+# Create a new string representing the directory in which all plots should
+# be saved
+save_loc = simul_loc + 'Ultimate_Output/'
 
 # Loop over the simulations, as we need to calculate the statistics for each
 # simulation
@@ -198,66 +196,72 @@ for i in range(len(low_B_sims)):
 	sync_map_low = sync_data_low[gam_index]
 	sync_map_high = sync_data_high[gam_index]
 
+	# Take into account an observing frequency of 1.4 GHz, by multiplying
+	# the extracted synchrotron maps by a gamma dependent frequency factor
+	sync_map_low_f = sync_map_low * np.power(1.4, -(gamma - 1))
+	sync_map_high_f = sync_map_high * np.power(1.4, -(gamma - 1))
+
 	# Print a message to the screen to show what simulation group is being used
 	print 'Starting calculation for simulation group {}'.format(i)
 
-	# Loop over the values for the parameter related to the observational
-	# effect, to calculate the structure function slope and integrated 
-	# quadrupole ratio for the low and high magnetic field simulations
+	# Loop over the noise values to calculate the structure function slope and
+	# integrated quadrupole ratio for the low and high magnetic field simulations
 	for j in range(len(iter_array)):
-		# Check to see which observational effect is being studied
-		if obs_effect == 'noise':
-			# In this case, we are taking into account the effect of noise in
-			# the telescope. We start with an array of values that, when 
-			# multiplied by the median intensity of the synchrotron map, give
-			# the standard deviation of the Gaussian noise. 
+		# Calculate the standard deviation of the Gaussian noise that will 
+		# affect the synchrotron maps. This needs to be done individually 
+		# for low and high magnetic field simulations
+		noise_stdev_low = iter_array[j] * np.median(sync_map_low_f)
+		noise_stdev_high = iter_array[j] * np.median(sync_map_high_f)
 
-			# Take into account an observing frequency of 1.4 GHz, by multiplying
-			# the extracted synchrotron maps by a gamma dependent frequency factor
-			sync_map_low_f = sync_map_low * np.power(1.4, -(gamma - 1))
-			sync_map_high_f = sync_map_high * np.power(1.4, -(gamma - 1))
+		# Create an array of values that are randomly drawn from a Gaussian
+		# distribution with the specified standard deviation. This 
+		# represents the noise at each pixel of the image. 
+		noise_matrix_low = np.random.normal(scale = noise_stdev_low,\
+		 size = np.shape(sync_map_low))
+		noise_matrix_high = np.random.normal(scale = noise_stdev_high,\
+		 size = np.shape(sync_map_high))
 
-			# Calculate the standard deviation of the Gaussian noise that will 
-			# affect the synchrotron maps. This needs to be done individually 
-			# for low and high magnetic field simulations
-			noise_stdev_low = iter_array[j] * np.median(sync_map_low_f)
-			noise_stdev_high = iter_array[j] * np.median(sync_map_high_f)
+		# Add the noise maps onto the synchrotron intensity maps, to produce
+		# the mock 'observed' maps
+		sync_map_free_param_low = sync_map_low_f + noise_matrix_low
+		sync_map_free_param_high = sync_map_high_f + noise_matrix_high
 
-			# Create an array of values that are randomly drawn from a Gaussian
-			# distribution with the specified standard deviation. This 
-			# represents the noise at each pixel of the image. 
-			noise_matrix_low = np.random.normal(scale = noise_stdev_low,\
-			 size = np.shape(sync_map_low))
-			noise_matrix_high = np.random.normal(scale = noise_stdev_high,\
-			 size = np.shape(sync_map_high))
+		# Create a Gaussian kernel to use to smooth the synchrotron map,
+		# using the given standard deviation
+		gauss_kernel = Gaussian2DKernel(smooth_stdev)
 
-			# Add the noise maps onto the synchrotron intensity maps, to produce
-			# the mock 'observed' maps
-			sync_map_free_param_low = sync_map_low_f + noise_matrix_low
-			sync_map_free_param_high = sync_map_high_f + noise_matrix_high
+		# Smooth the synchrotron maps to the required resolution by 
+		# convolution with the above Gaussian kernel.
+		sync_map_free_param_low = convolve_fft(sync_map_free_param_low,\
+		 gauss_kernel, boundary = 'wrap')
+		sync_map_free_param_high = convolve_fft(sync_map_free_param_high,\
+		 gauss_kernel, boundary = 'wrap')
 
-		elif obs_effect == 'res':
-			# In this case, we are taking into account the effect of spatial 
-			# resolution. We start with an array of values that specifies the
-			# standard deviation of the Gaussian to be used to smooth the data.
+		# To plot against the final noise level, we need to perform some 
+		# additional calculations
+		
+		# Start by smoothing the initial synchrotron intensity map to
+		# the required resolution. (No noise added)
+		sync_map_low_no_noise = convolve_fft(sync_map_low_f,\
+		 gauss_kernel, boundary = 'wrap')
+		sync_map_high_no_noise = convolve_fft(sync_map_high_f,\
+		 gauss_kernel, boundary = 'wrap')
 
-			# Take into account an observing frequency of 1.4 GHz, by multiplying
-			# the extracted synchrotron maps by a gamma dependent frequency factor
-			sync_map_low_f = sync_map_low * np.power(1.4, -(gamma - 1))
-			sync_map_high_f = sync_map_high * np.power(1.4, -(gamma - 1))
+		# Subtract this smoothed synchrotron map (with no noise) from the
+		# full map (noise added, then smoothed)
+		noise_map_low = sync_map_free_param_low - sync_map_low_no_noise
+		noise_map_high = sync_map_free_param_high - sync_map_high_no_noise
 
-			# Create a Gaussian kernel to use to smooth the synchrotron map,
-			# using the given standard deviation
-			gauss_kernel = Gaussian2DKernel(iter_array[j])
+		# Calculate the standard deviation of the noise (in same units as
+		# the intensity)
+		stdev_final_noise_low = np.std(noise_map_low)
+		stdev_final_noise_high = np.std(noise_map_high)
 
-			# Smooth the synchrotron maps to the required resolution by 
-			# convolution with the above Gaussian kernel.
-			sync_map_free_param_low = convolve_fft(sync_map_low_f, gauss_kernel, boundary = 'wrap')
-			sync_map_free_param_high = convolve_fft(sync_map_high_f, gauss_kernel, boundary = 'wrap')
-
-			# Replace the array of standard deviations with the array of final
-			# resolutions, so that the final resolutions are used in all plots
-			iter_array[j] = final_res[j]
+		# Express the calculated standard deviation as a fraction of the 
+		# median synchrotron intensity of the map, and store the value in
+		# the corresponding matrix
+		final_noise_low[i,j] = stdev_final_noise_low / np.median(sync_map_low_f)
+		final_noise_high[i,j] = stdev_final_noise_high / np.median(sync_map_high_f)
 
 		# Calculate the structure function (two-dimensional) of the synchrotron
 		# intensity maps, for the low and high magnetic field simulations. Note 
@@ -371,8 +375,8 @@ ax1 = fig.add_subplot(221)
 # Loop over the low magnetic field simulations to produce plots for each simulation
 for i in range(len(low_B_sims)):
 	# Plot the SF slope for this simulation, against the observational effect
-	plt.plot(iter_array, sf_low_arr[i], '-' + symbol_arr[i],\
-	 label = '{}'.format(low_B_short_M[i]))
+	plt.plot(final_noise_low[i], sf_low_arr[i], '-' + symbol_arr[i],\
+	 label = r'{}'.format(low_B_short_M[i]))
 
 # Force the legends to appear on the plot
 plt.legend(loc = 1, fontsize = 10)
@@ -381,7 +385,7 @@ plt.legend(loc = 1, fontsize = 10)
 plt.ylabel('m', fontsize = 20)
 
 # Set the x axis limits for the plot
-ax1.set_xlim([np.min(iter_array), np.max(iter_array)])
+ax1.set_xlim([np.min(final_noise_low), np.max(final_noise_low)])
 
 # Make the x axis tick labels invisible
 plt.setp( ax1.get_xticklabels(), visible=False)
@@ -394,14 +398,14 @@ ax2 = fig.add_subplot(222, sharey = ax1)
 # Loop over the high magnetic field simulations to produce plots for each simulation
 for i in range(len(high_B_sims)):
 	# Plot the SF slope for this simulation, against the observational effect
-	plt.plot(iter_array, sf_high_arr[i], '-' + symbol_arr[i],\
-	 label = '{}'.format(high_B_short_M[i]))
+	plt.plot(final_noise_high[i], sf_high_arr[i], '-' + symbol_arr[i],\
+	 label = r'{}'.format(high_B_short_M[i]))
 
 # Force the legends to appear on the plot
 plt.legend(loc = 1, fontsize = 10)
 
 # Set the x axis limits for the plot
-ax2.set_xlim([np.min(iter_array), np.max(iter_array)])
+ax2.set_xlim([np.min(final_noise_high), np.max(final_noise_high)])
 
 # Make the x axis tick labels invisible
 plt.setp( ax2.get_xticklabels(), visible=False)
@@ -418,13 +422,13 @@ ax3 = fig.add_subplot(223, sharex = ax1)
 for i in range(len(low_B_sims)):
 	# Plot the integrated quadrupole ratio for this simulation, against the
 	# observational effect
-	plt.plot(iter_array, quad_low_arr[i], '-' + symbol_arr[i])
+	plt.plot(final_noise_low[i], quad_low_arr[i], '-' + symbol_arr[i])
 
 # Add a label to the y-axis
 plt.ylabel('Int Quad Ratio', fontsize = 20)
 
 # Set the x axis limits for the plot
-ax3.set_xlim([np.min(iter_array), np.max(iter_array)])
+ax3.set_xlim([np.min(final_noise_low), np.max(final_noise_low)])
 
 # Create an axis for the fourth subplot to be produced, which is for the 
 # integrated quadrupole ratio of high magnetic field simulations. Make the x 
@@ -435,10 +439,10 @@ ax4 = fig.add_subplot(224, sharex = ax2, sharey = ax3)
 for i in range(len(high_B_sims)):
 	# Plot the integrated quadrupole ratio for this simulation, against the 
 	# observational effect
-	plt.plot(iter_array, quad_high_arr[i], '-' + symbol_arr[i])
+	plt.plot(final_noise_high[i], quad_high_arr[i], '-' + symbol_arr[i])
 
 # Set the x axis limits for the plot
-ax4.set_xlim([np.min(iter_array), np.max(iter_array)])
+ax4.set_xlim([np.min(final_noise_high), np.max(final_noise_high)])
 
 # Make the y axis tick labels invisible
 plt.setp( ax4.get_yticklabels(), visible=False)
@@ -458,14 +462,8 @@ plt.figtext(0.19, 0.475, 'c) Quad, low B', fontsize = 18)
 # Add some text to the figure, to label the right plot as figure d
 plt.figtext(0.61, 0.475, 'd) Quad, high B', fontsize = 18)
 
-# Depending on the observational effect being studied, change the filename used
-# to save the figure
-if obs_effect == 'noise':
-	# Save the figure using the given filename and format
-	plt.savefig(simul_loc + 'Publication_Plots/fig18.eps', format = 'eps')
-elif obs_effect == 'res':
-	# Save the figure using the given filename and format
-	plt.savefig(simul_loc + 'Publication_Plots/fig16.eps', format = 'eps')
+# Save the figure using the given filename and format
+plt.savefig(simul_loc + 'Publication_Plots/fig20_2.eps', format = 'eps')
 
 # Close the figure so that it does not stay in memory
 plt.close()
