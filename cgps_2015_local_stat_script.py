@@ -25,7 +25,9 @@ from mat2FITS_Image import mat2FITS_Image
 from fits2aplpy import fits2aplpy
 
 # Import the function that will calculate all of the local statistics
-from calc_local_stats import calc_local_stats
+#from calc_local_stats import calc_local_stats         # Cython version
+#from calc_local_stats_purepy import calc_local_stats  # Python version
+from calc_sparse_stats import calc_sparse_stats       # Sparse Python version
 
 # Create a string object which stores the directory of the CGPS data
 data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
@@ -39,16 +41,16 @@ data_2_load = 'Polar_Grad'
 # Create a string that will be used to control what FITS files are used
 # to perform calculations, and that will be appended into the filename of 
 # anything produced in this script. This is either 'high_lat' or 'plane'
-save_append = 'high_lat'
+save_append = 'plane'
 
 # Create an array that specifies all of the final resolution values that were 
 # used to create mosaics. This code will calculate quantities for each of the
 # resolutions given in this array
-# final_res_array = np.array([75, 90, 105, 120, 135, 150, 165, 180, 195, 210,\
-#  225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390, 405, 420, 450,\
-#  480, 510, 540, 570, 600, 630, 660, 720, 780, 840, 900, 960, 1020, 1080, 1140,\
-#  1200])
-final_res_array = np.array([75])
+final_res_array = np.array([75, 90, 105, 120, 135, 150, 165, 180, 195, 210,\
+ 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390, 405, 420, 450,\
+ 480, 510, 540, 570, 600, 630, 660, 720, 780, 840, 900, 960, 1020, 1080, 1140,\
+ 1200])
+#final_res_array = np.array([75])
 
 # Create a list that specifies all of the files for which we want to calculate
 # local statistics
@@ -57,7 +59,7 @@ input_files = [data_loc + '{}_{}_smoothed/'.format(data_2_load, save_append)\
 
 # Create a list that specifies the filenames to use to save all of the 
 # produced files
-output_files = [data_loc + '{}_{}_smooth2_{}_'.format(data_2_load, save_append,\
+output_files = [data_loc + '{}_{}_smooth2_{}'.format(data_2_load, save_append,\
  res) for res in final_res_array]
 
 # Create a list of strings, that will be used to control what local statistics
@@ -81,4 +83,4 @@ box_halfwidths = np.asarray([int(np.ceil(10 * res/(pix_size_deg * 3600)))\
 # Run the function that calculates the local statistics for each image. This
 # will calculate all statistics for each value of the final resolution, and then
 # save the resulting map as a FITS file.
-calc_local_stats(input_files, output_files, stat_list, box_halfwidths)
+calc_sparse_stats(input_files, output_files, stat_list, box_halfwidths)
