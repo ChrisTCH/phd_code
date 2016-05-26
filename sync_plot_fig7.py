@@ -34,7 +34,7 @@ num_bins = 25
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
+simul_loc = '/Volumes/CAH_ExtHD/Madison_2014/Simul_Data/'
 
 # Create a string for the specific simulated data sets to use in calculations.
 # The directories end in:
@@ -240,7 +240,7 @@ plt.figtext(0.03, 0.5, 'Quadrupole Ratio', ha = 'left', \
 	va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Force the legend to appear on the plot
-plt.legend(fontsize = 10)
+plt.legend(fontsize = 10, numpoints=1)
 
 # Add some text to the figure, to label the left plot as figure a
 plt.figtext(0.19, 0.95, 'a) Alfven Mode', fontsize = 18)

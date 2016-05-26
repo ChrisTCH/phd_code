@@ -14,10 +14,11 @@
 # First import numpy for array handling, astropy.io for fits manipulation
 import numpy as np
 from astropy.io import fits
+import matplotlib.pyplot as plt
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
+simul_loc = '/Volumes/CAH_ExtHD/Madison_2014/Simul_Data/'
 
 # Create a string for the specific simulated data set to use in calculations.
 # The directories end in:
@@ -59,6 +60,18 @@ press_arr = np.array([0.0049, 0.0077, 0.01, 0.025, 0.05, 0.1, 0.7, 2.0,\
 mag_arr = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 1.0, 1.0,\
 	1.0, 1.0, 1.0, 1.0, 1.0, 3.0, 5.0])
 
+# Create an array, where each entry specifies the initial sound speed of the
+# corresponding simulation to study. This should only be used when the sound
+# speed is being calculated from the initial condition of the simulation, so
+# that an assumption is made that the sound speed at each pixel does not change
+# as the simulation evolves. If the assumption being made is that the 
+# simulations are isobaric, so that the pressure at each pixel is the same as 
+# the simulations evolve, then the sound speed needs to be calculated at each 
+# pixel.
+# Calculate the initial sound speed (assumed to be equal to the sound speed
+# at any later time) for each simulation, assuming a uniform density of 1
+c_s_arr = np.sqrt(press_arr)
+
 # Create an empty array, which will hold the calculated sonic Mach number for 
 # each simulation
 sonic_mach_arr = np.zeros(len(simul_arr))
@@ -68,7 +81,7 @@ sonic_mach_arr = np.zeros(len(simul_arr))
 alf_mach_arr = np.zeros(len(simul_arr))
 
 # Create an empty array, which will hold the calculated ratio of the random
-# magnetic field divided by the total magnetic field for each simulation.
+# magnetic field divided by the regular magnetic field for each simulation.
 mean_ratio_arr = np.zeros(len(simul_arr))
 
 # Loop over the simulations, as we need to calculate the sonic and Alfvenic 
@@ -153,14 +166,20 @@ for i in range(len(simul_arr)):
 	vel_amp_arr = np.sqrt( np.power(vel_x_data,2.0) + np.power(vel_y_data,2.0)\
 	+ np.power(vel_z_data,2.0) )
 
-	# Calculate the isothermal speed of sound at each pixel, for this simulation
-	c_s = np.sqrt(press_arr[i] / dens_data)
+	# # Calculate the isothermal speed of sound at each pixel, for this simulation
+	# c_s = np.sqrt(press_arr[i] / dens_data)
 
 	# Calculate the Alfven velocity at every pixel for this simulation
 	v_alf = mag_amp_arr / np.sqrt(dens_data)
 
-	# Calculate the sonic Mach number for the simulation
-	sonic_mach = np.mean(vel_amp_arr / c_s, dtype = np.float64)
+	# # Calculate the sonic Mach number for the simulation (when c_s calculated 
+	# # at each pixel, assuming isobaric simulations)
+	# sonic_mach = np.mean(vel_amp_arr / c_s, dtype = np.float64)
+
+	# Calculate the sonic Mach number for the simulation (when c_s calculated 
+	# once for each simulation, assuming c_s is not time dependent, and is
+	# uniform)
+	sonic_mach = np.mean(vel_amp_arr / c_s_arr[i], dtype = np.float64)
 
 	# Calculate the Alfvenic Mach number for the simulation
 	alf_mach = np.mean(vel_amp_arr / v_alf, dtype = np.float64)
@@ -199,13 +218,17 @@ for i in range(len(simul_arr)):
 	random_B = np.sqrt( np.power(random_Bx,2.0) + np.power(random_By,2.0)\
 	 + np.power(random_Bz,2.0))
 
-	# Calculate the ratio of the random magnetic field strength to the total
+	# Calculate the magnitude of the regular component of the magnetic field
+	regular_B = np.sqrt( np.power(mean_Bx,2.0) + np.power(mean_By,2.0)\
+	 + np.power(mean_Bz,2.0))
+
+	# Calculate the ratio of the random magnetic field strength to the regular
 	# magnetic field strength
-	ratio_random_total = random_B / mag_amp_arr
+	ratio_random_regular = random_B / regular_B
 
 	# Calculate the mean of the ratio of the random magnetic field divided by
 	# the total magnetic field
-	mean_ratio_arr[i] = np.mean(ratio_random_total, dtype = np.float64)
+	mean_ratio_arr[i] = np.mean(ratio_random_regular, dtype = np.float64)
 
 	# Close all of the fits files, to save memory
 	mag_x_fits.close()
@@ -222,9 +245,9 @@ print 'Sonic Mach number array: {}'.format(sonic_mach_arr)
 # Print out the Alfvenic Mach number array to the screen
 print 'Alfvenic Mach number array: {}'.format(alf_mach_arr)
 
-# Print out the mean ratio of the random B field to the total B field array
+# Print out the mean ratio of the random B field to the regular B field array
 # to the screen
-print 'Mean Ratio Random B / Total B array: {}'.format(mean_ratio_arr)
+print 'Mean Ratio Random B / Regular B array: {}'.format(mean_ratio_arr)
 
 # Use a for loop to loop over the different simulations
 for i in range(len(simul_arr)):
@@ -232,3 +255,36 @@ for i in range(len(simul_arr)):
 	# field strength, and the sonic and Alfvenic Mach number for the simulation
 	print 'Pressure: {}, B field: {}, Sonic Mach: {}, Alf Mach: {}, Mean random B ratio: {}'.format(\
 		press_arr[i], mag_arr[i], sonic_mach_arr[i], alf_mach_arr[i], mean_ratio_arr[i])
+
+	# # Print a line to the screen specifying the initial pressure and magnetic 
+	# # field strength, and the sonic Mach number
+	# print 'Pressure: {}, B field: {}, Sonic Mach: {}'.format(\
+	# 	press_arr[i], mag_arr[i], sonic_mach_arr[i])
+
+# Create a figure that will hold a plot of the ratio of the random magnetic 
+# field strength to the regular magnetic field strength against the Alfvenic
+# Mach number
+fig1 = plt.figure()
+
+# Create an axis for this figure
+ax1 = fig1.add_subplot(111)
+
+# Plot the skewness as a function of sonic Mach number for each gamma
+plt.scatter(alf_mach_arr, mean_ratio_arr)
+
+# Add a label to the x-axis
+plt.xlabel('Alfvenic Mach Number', fontsize = 20)
+
+# Add a label to the y-axis
+plt.ylabel('Mean Ratio Random to Regular B', fontsize = 20)
+
+# Save the figure using the given filename and format
+plt.savefig(simul_loc + 'Publication_Plots/' + 'B_ratio_Alf_mach.png', format = 'png')
+
+# Print a message to the screen to show that the plot of the ratio of the 
+# random B field to the regular B field as a function of the Alfvenic Mach 
+# number has been saved
+print 'Plot of the random B ratio as a function of Alfvenic Mach number saved'
+
+# Close the figure, now that it has been saved.
+plt.close()

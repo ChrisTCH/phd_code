@@ -31,7 +31,7 @@ num_bins = 25
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
+simul_loc = '/Volumes/CAH_ExtHD/Madison_2014/Simul_Data/'
 
 # Create a string for the specific simulated data sets to use in calculations.
 # The directories end in:
@@ -283,7 +283,7 @@ plt.plot(np.linspace(0,1000, len(radius_array)),\
 ax4.set_xscale('log')
 
 # Force the legend to appear on the plot
-plt.legend()
+plt.legend(fontsize=10, numpoints=1)
 
 # Make the y axis tick labels invisible
 plt.setp( ax4.get_yticklabels(), visible=False)
@@ -297,16 +297,16 @@ plt.figtext(0.03, 0.5, 'Normalized Correlation Function', ha = 'left', \
 	va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Add some text to the figure, to label the left plot as figure a
-plt.figtext(0.19, 0.95, 'a) Ms5.82Ma1.76', fontsize = 18)
+plt.figtext(0.19, 0.95, 'a) Ms7.02Ma1.76', fontsize = 18)
 
 # Add some text to the figure, to label the left plot as figure b
-plt.figtext(0.61, 0.95, 'b) Ms0.47Ma1.72', fontsize = 18)
+plt.figtext(0.61, 0.95, 'b) Ms0.45Ma1.72', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure c
-plt.figtext(0.19, 0.475, 'c) Ms5.47Ma0.52', fontsize = 18)
+plt.figtext(0.19, 0.475, 'c) Ms6.78Ma0.52', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure d
-plt.figtext(0.61, 0.475, 'd) Ms0.47Ma0.65', fontsize = 18)
+plt.figtext(0.61, 0.475, 'd) Ms0.48Ma0.65', fontsize = 18)
 
 # Save the figure using the given filename and format
 plt.savefig(simul_loc + 'Publication_Plots/fig2_RHS_normalise.eps', format = 'eps')

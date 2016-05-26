@@ -21,6 +21,7 @@ from scipy import stats
 
 # Import utility functions
 from mat2FITS_Image import mat2FITS_Image
+from hist_plot import hist_plot
 
 # Define the function that can be imported by a calling code to calculate
 # local statistics at pixels distributed on a grid throughout the input image,
@@ -56,7 +57,7 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
         				   present, as this is added in the function.
         stat_list - An array of strings, where each string specifies a statistic
         			that is to be calculated locally for each input image.
-        			Allowed values are 'skewness' and 'kurtosis'.
+        			Allowed values are 'mean', 'stdev',skewness' and 'kurtosis'.
         box_halfwidths - The half-widths of the box to use when calculating the
         				 local statistics, in pixels. This is an array of
         				 positive integers greater than or equal to 1. This 
@@ -93,7 +94,7 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 		return 0
 
 	# Create a list of valid strings that can be given to the stat_list variable
-	valid_stats = ['skewness', 'kurtosis'] 
+	valid_stats = ['mean', 'stdev', 'skewness', 'kurtosis'] 
 
 	# Check to see that valid statistics were provided
 	if len(list(set(valid_stats).intersection(stat_list))) == 0:
@@ -145,6 +146,11 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 		# Extract the number of pixels along the vertical axis of the image
 		num_pix_vert = fits_hdr['NAXIS2']
 
+		# Calculate where the reference pixel is relative to the top left
+		# hand corner of the image
+		horiz_centre_loc = np.absolute(fits_hdr['CDELT1'] * fits_hdr['CRPIX1'])
+		vert_centre_loc = np.absolute(fits_hdr['CDELT2'] * fits_hdr['CRPIX2'])
+
 		# Create a new header object, that will become the header for the 
 		# statistics map that is produced
 		stats_hdr = fits_hdr
@@ -187,8 +193,8 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 
 		# Change the CRPIX keywords, that specify which pixel is the reference
 		# pixel in the image
-		stats_hdr['CRPIX1'] = np.floor(num_grid_horiz / 2.0) + 1
-		stats_hdr['CRPIX2'] = np.floor(num_grid_vert / 2.0) + 1
+		stats_hdr['CRPIX1'] = np.absolute(horiz_centre_loc / stats_hdr['CDELT1']) + 1
+		stats_hdr['CRPIX2'] = np.absolute(vert_centre_loc / stats_hdr['CDELT2'])
 
 		# Create a dictionary that will hold the arrays corresponding to each 
 		# statistic
@@ -203,7 +209,7 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 			# type is 32-bit float, since all of the input arrays have that data
 			# type
 			stat_dict[stat] = np.zeros((num_grid_vert,num_grid_horiz)\
-				, dtype = np.float32)
+				, dtype = np.float64)
 
 		# Loop over all of the pixels at which we will evaluate statistics,
 		# starting by looping over each row
@@ -278,6 +284,23 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 				local_data_no_nan =\
 				 local_data_flat[np.logical_not(NaN_position)]
 
+				# Sort the local data from smallest to largest
+				local_data_sorted = np.sort(local_data_no_nan)
+
+				# Truncate the data array to the desired range
+				local_data_trunc = local_data_sorted[\
+				int(np.floor(0*len(local_data_sorted))):\
+				int(np.floor(0.99*len(local_data_sorted)))]
+
+				# # If we are at a desired pixel of the statistics map, then 
+				# # produce a histogram of the truncated data values, and save it.
+				# if j==26 and (k>= 101 and k<=125):
+				# 	# We are at a desired pixel, so save an image of the 
+				# 	# histogram at this pixel
+				# 	hist_plot(local_data_trunc, output_filenames[i] +\
+				# 	 '_hist_{}_{}.png'.format(j,k), 'png', 'Polar Gradient',\
+				# 	 'PDF Polar Grad x={} y={}'.format(k,j), bins=20 )
+
 				# Check that most of the data in the box is not NaN
 				if (len(local_data_flat)/2.0)>len(local_data_no_nan):
 					# In this case more than half of the data is NaN, so
@@ -285,6 +308,24 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 					for stat in stat_list:
 						(stat_dict[stat])[j,k] = float('nan')
 				else:
+					# Check to see if the mean of the local area needs to be
+					# calculated
+					if 'mean' in stat_list:
+						# Calculate the mean of the local data that has had 
+						# the NaN values removed, and store it in the 
+						# corresponding array
+						(stat_dict['mean'])[j,k] =\
+						 np.mean(local_data_trunc, dtype = np.float64)
+
+					# Check to see if the standard deviation of the local area 
+					# needs to be calculated
+					if 'stdev' in stat_list:
+						# Calculate the standard deviation of the local data 
+						# that has had the NaN values removed, and store it in 
+						# the corresponding array
+						(stat_dict['stdev'])[j,k] =\
+						 np.std(local_data_trunc, dtype = np.float64)
+
 					# Check to see if the skewness of the local area needs to be
 					# calculated
 					if 'skewness' in stat_list:
@@ -292,14 +333,16 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 						# the NaN values removed, and store it in the 
 						# corresponding array
 						(stat_dict['skewness'])[j,k] =\
-						 stats.skew(local_data_no_nan)
+						 stats.skew(local_data_trunc)
 
-					elif 'kurtosis' in stat_list:
+					# Check to see if the kurtosis of the local area needs to be
+					# calculated
+					if 'kurtosis' in stat_list:
 						# Calculate the kurtosis of the local data that has had 
 						# the NaN values removed, and store it in the 
 						# corresponding array
 						(stat_dict['kurtosis'])[j,k] =\
-						 stats.kurtosis(local_data_no_nan)
+						 stats.kurtosis(local_data_trunc)
 
 				# When the code reaches this point, all of the required 
 				# statistics have been calculated for this pixel

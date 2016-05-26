@@ -26,7 +26,7 @@ from fractalcube import fractalcube
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
+simul_loc = '/Volumes/CAH_ExtHD/Madison_2014/Simul_Data/'
 
 # Create a string for the specific simulated data set to use in calculations.
 # The directories end in:
@@ -49,19 +49,48 @@ simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
 # c512b3p.01
 # c512b5p.01
 # c512b5p2
-spec_loc = 'c512b5p.01/'
+
+# Create a list, where each entry is a string describing the directory 
+# containing the current simulation to study
+simul_arr = ['c512b.1p.0049/', 'c512b.1p.0077/', 'b.1p.01_Oct_Burk/', \
+'c512b.1p.025/', 'c512b.1p.05/', 'b.1p.1_Oct_Burk/', 'c512b.1p.7/', \
+'b.1p2_Aug_Burk/', 'c512b1p.0049/', 'c512b1p.0077/', 'b1p.01_Oct_Burk/',\
+'c512b1p.025/', 'c512b1p.05/', 'b1p.1_Oct_Burk/', 'c512b1p.7/', \
+'b1p2_Aug_Burk/', 'c512b3p.01/', 'c512b5p.01/']
 
 # # Create a variable that controls the angle between the line of sight and the
 # # z axis of the data cube. This needs to be a decimal. The rotation from the
 # # z axis to the new line of sight is performed around the y axis.
 # rotate_angle = 0.0
 
-# Create a string for the full directory path to use in calculations
-data_loc =  simul_loc + spec_loc
-
 # Create an array that specifies the gamma values that were used to produce
 # these synchrotron emission maps
 gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
+
+# Create a variable that controls whether the line of sight is assumed to be
+# along the y or z axis of the data cube when constructing the synchrotron
+# maps. This can be 'y' or 'z'
+line_o_sight = 'y'
+
+# Set the axes to use for the rotation
+if line_o_sight == 'y':
+	rot_axes = [2,1]
+elif line_o_sight == 'z':
+	rot_axes = [2,0]
+
+# Depending on the line of sight, the strength of the magnetic field 
+# perpendicular to the line of sight is calculated in different ways
+if line_o_sight == 'z':
+	# Construct a variable which tells the script which axis we need to 
+	# integrate along to calculate the synchrotron maps. Since the line of sight
+	# is the z axis, we need to integrate along axis 0. (Numpy convention is 
+	# that axes are ordered as (z, y, x))
+	int_axis = 0
+elif line_o_sight == 'y':
+	# Construct a variable which tells the script which axis we need to 
+	# integrate along to calculate the synchrotron maps. Since the line of sight
+	# is the y axis, we need to integrate along axis 1.
+	int_axis = 1
 
 # ------ Use this code to test with fractal data
 
@@ -79,156 +108,186 @@ gamma_arr = np.array([1.0,1.5,2.0,2.5,3.0,3.5,4.0])
 
 # ------ End fractal data generation
 
-# Open the FITS file that contains the x-component of the simulated magnetic
-# field
-mag_x_fits = fits.open(data_loc + 'magx.fits')
-
-# Extract the data for the simulated x-component of the magnetic field
-mag_x_data = mag_x_fits[0].data
-
-# Open the FITS file that contains the y-component of the simulated magnetic 
-# field
-mag_y_fits = fits.open(data_loc + 'magy.fits')
-
-# Extract the data for the simulated y-component of the magnetic field
-mag_y_data = mag_y_fits[0].data
-
-# Open the FITS file that contains the z-component of the simulated magnetic 
-# field
-mag_z_fits = fits.open(data_loc + 'magz.fits')
-
-# Extract the data for the simulated z-component of the magnetic field
-mag_z_data = mag_z_fits[0].data
-
-# Print a message to the screen to show that the data has been loaded
-print 'Magnetic field components loaded successfully'
-
-# Create an array that specifies the rotation angles relative to the z axis of
-# the MHD cubes, of the synchrotron maps to be used
+# Create an array that specifies the rotation angles relative to the y or z axes
+# of the MHD cubes, of the synchrotron maps to be used
 rot_ang_arr = np.array([0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0,\
 	80.0, 90.0]) 
 
 # Calculate the rotation angle in radians
 rad_angle_arr = np.deg2rad(rot_ang_arr)
 
-# Loop over all of the required angles, to calculate the synchrotron map for
-# each one
-for j in range(len(rad_angle_arr)):
-	# Calculate the strength of the component of the magnetic field in the 
-	# horizontal direction, as viewed from the new line of sight
-	mag_horiz = mag_x_data * np.cos(rad_angle_arr[j]) + mag_z_data *np.sin(rad_angle_arr[j])
+# Loop over the simulations, so that we can produce the synchrotron images
+# for all simulations at once
+for sim in simul_arr:
+	# Create a string for the full directory path to use in calculations
+	data_loc =  simul_loc + sim
 
-	# Calculate the magnitude of the magnetic field perpendicular to the new line
-	# of sight, which is just the square root of the sum of the horizontal and 
-	# y magnitudes squared
-	mag_perp = np.sqrt( np.power(mag_horiz, 2.0) + np.power(mag_y_data, 2.0) )
+	# Open the FITS file that contains the x-component of the simulated magnetic
+	# field
+	mag_x_fits = fits.open(data_loc + 'magx.fits')
 
-	# Calculate the shape of the input data cubes
-	shape_input = np.shape(mag_perp)
+	# Extract the data for the simulated x-component of the magnetic field
+	mag_x_data = mag_x_fits[0].data
 
-	# Calculate the length of each side of the sub-cube that will be extracted.
-	# This length is chosen so that the sub-cube formed is the biggest possible
-	# sub-cube that exists for every line of sight.
-	sub_cube_length = np.floor( shape_input[0] / np.sqrt(2.0) )
+	# Open the FITS file that contains the y-component of the simulated magnetic 
+	# field
+	mag_y_fits = fits.open(data_loc + 'magy.fits')
 
-	# Print a message to show what the sub-cube length should be
-	print 'Sub-cube length should be {}'.format(sub_cube_length)
+	# Extract the data for the simulated y-component of the magnetic field
+	mag_y_data = mag_y_fits[0].data
 
-	# Rotate the cube containing values for the perpendicular component of the 
-	# magnetic field, so that the new line of sight is aligned with the z-axis of 
-	# the new cube. This is done so that we can integrate along the line of sight
-	# more easily.
-	rotated_mag_perp = ndimage.interpolation.rotate(mag_perp, -1.0 * rot_ang_arr[j],\
-		axes = [2,0], reshape = True, order = 3)
+	# Open the FITS file that contains the z-component of the simulated magnetic 
+	# field
+	mag_z_fits = fits.open(data_loc + 'magz.fits')
 
-	# Print a message to show that the perpendicular component of the magnetic
-	# field has been rotated to make integration easier
-	print 'Perpendicular component of the magnetic field has been rotated'
+	# Extract the data for the simulated z-component of the magnetic field
+	mag_z_data = mag_z_fits[0].data
 
-	# Calculate the shape of the rotated cube
-	shape_rotate = np.shape(rotated_mag_perp)
+	# Print a message to the screen to show that the data has been loaded
+	print 'Magnetic field components loaded successfully {}'.format(sim)
 
-	# Print the shape of the rotated cube to the screen
-	print 'Shape of rotated cube is {}'.format(shape_rotate)
+	# Loop over all of the required angles, to calculate the synchrotron map for
+	# each one
+	for j in range(len(rad_angle_arr)):
+		if line_o_sight == 'y':
+			# Calculate the strength of the component of the magnetic field in the 
+			# horizontal direction, as viewed from the new line of sight
+			mag_horiz = mag_x_data * np.cos(rad_angle_arr[j]) + mag_y_data *np.sin(rad_angle_arr[j])
+		elif line_o_sight == 'z':
+			# Calculate the strength of the component of the magnetic field in the 
+			# horizontal direction, as viewed from the new line of sight
+			mag_horiz = mag_x_data * np.cos(rad_angle_arr[j]) + mag_z_data *np.sin(rad_angle_arr[j])
 
-	# Calculate the minimum index of the rotated cube, to be included when 
-	# extracting the sub-cube
-	ind_min = int(shape_rotate[0] / 2.0 - sub_cube_length / 2.0)
+		if line_o_sight == 'y':
+			# Calculate the magnitude of the magnetic field perpendicular to the new line
+			# of sight, which is just the square root of the sum of the horizontal and 
+			# y magnitudes squared
+			mag_perp = np.sqrt( np.power(mag_horiz, 2.0) + np.power(mag_z_data, 2.0) )
+		elif line_o_sight == 'z':
+			# Calculate the magnitude of the magnetic field perpendicular to the new line
+			# of sight, which is just the square root of the sum of the horizontal and 
+			# y magnitudes squared
+			mag_perp = np.sqrt( np.power(mag_horiz, 2.0) + np.power(mag_y_data, 2.0) )
 
-	# Calculate the maximum index of the rotated cube, to not be included when
-	# extracting the sub-cube
-	ind_max = int(shape_rotate[0] / 2.0 + sub_cube_length / 2.0)
+		# Calculate the shape of the input data cubes
+		shape_input = np.shape(mag_perp)
 
-	# Calculate the minimum index of the rotated cube, to be included when 
-	# extracting the sub-cube, for the y axis
-	ind_min_y = int(shape_rotate[1] / 2.0 - sub_cube_length / 2.0)
+		# Calculate the length of each side of the sub-cube that will be extracted.
+		# This length is chosen so that the sub-cube formed is the biggest possible
+		# sub-cube that exists for every line of sight.
+		sub_cube_length = np.floor( shape_input[0] / np.sqrt(2.0) )
 
-	# Calculate the maximum index of the rotated cube, to not be included when
-	# extracting the sub-cube, for the y axis
-	ind_max_y = int(shape_rotate[1] / 2.0 + sub_cube_length / 2.0)
+		# Print a message to show what the sub-cube length should be
+		print 'Sub-cube length should be {}'.format(sub_cube_length)
 
-	# Extract the sub-cube that will be used to produce the maps of synchrotron
-	# emission. This sub-cube is taken from the rotated cube of the component of
-	# the magnetic field perpendicular to the new line of sight
-	sub_mag_perp = rotated_mag_perp[ind_min:ind_max,ind_min_y:ind_max_y,ind_min:ind_max]
+		# Rotate the cube containing values for the perpendicular component of the 
+		# magnetic field, so that the new line of sight is aligned with the z-axis of 
+		# the new cube. This is done so that we can integrate along the line of sight
+		# more easily.
+		rotated_mag_perp = ndimage.interpolation.rotate(mag_perp, -1.0 * rot_ang_arr[j],\
+			axes = rot_axes, reshape = True, order = 3)
 
-	# Print the shape of the obtained sub-cube to the screen
-	print 'Shape of the sub-cube is {}'.format(np.shape(sub_mag_perp))
+		# Print a message to show that the perpendicular component of the magnetic
+		# field has been rotated to make integration easier
+		print 'Perpendicular component of the magnetic field has been rotated'
 
-	# Create a Numpy array to hold the calculated synchrotron emission maps
-	sync_arr = np.zeros((len(gamma_arr), np.shape(sub_mag_perp)[1],\
-	 np.shape(sub_mag_perp)[2]))
+		# Calculate the shape of the rotated cube
+		shape_rotate = np.shape(rotated_mag_perp)
 
-	# Loop over the array of gamma values, calculating the observed synchrotron
-	# emission map for each one
-	for i in range(len(gamma_arr)):
-		# Calculate the result of raising the perpendicular magnetic field strength
-		# to the power of gamma
-		mag_perp_gamma = np.power(sub_mag_perp, gamma_arr[i])
+		# Print the shape of the rotated cube to the screen
+		print 'Shape of rotated cube is {}'.format(shape_rotate)
 
-		# Integrate the perpendicular magnetic field strength raised to the power
-		# of gamma along the required axis, to calculate the observed synchrotron 
-		# map. This integration is performed by the trapezoidal rule. To normalise 
-		# the calculated synchrotron map, divide by the number of pixels along the 
-		# z-axis. Note the array is ordered by (z,y,x)!
-		# NOTE: Set dx to whatever the pixel spacing is
-		sync_arr[i] = np.trapz(mag_perp_gamma, dx = 1.0, axis = 0) /\
-		 np.shape(sub_mag_perp)[0]
+		# Calculate the minimum index of the rotated cube, to be included when 
+		# extracting the sub-cube
+		ind_min = int(shape_rotate[0] / 2.0 - sub_cube_length / 2.0)
 
-	# Print a message to the screen stating that the synchrotron maps have been
-	# produced
-	print 'Synchrotron maps calculated'
+		# Calculate the maximum index of the rotated cube, to not be included when
+		# extracting the sub-cube
+		ind_max = int(shape_rotate[0] / 2.0 + sub_cube_length / 2.0)
 
-	# Now that the synchrotron maps have been produced, we need to save the 
-	# produced maps as a FITS file
+		# Calculate the minimum index of the rotated cube, to be included when 
+		# extracting the sub-cube, for the y axis
+		ind_min_y = int(shape_rotate[1] / 2.0 - sub_cube_length / 2.0)
 
-	# To do this, we need to make a FITS header, so that anyone using the FITS
-	# file in the future will know what gamma values were used
+		# Calculate the maximum index of the rotated cube, to not be included when
+		# extracting the sub-cube, for the y axis
+		ind_max_y = int(shape_rotate[1] / 2.0 + sub_cube_length / 2.0)
 
-	# Create a primary HDU to contain the synchrotron data
-	pri_hdu = fits.PrimaryHDU(sync_arr)
+		# Extract the sub-cube that will be used to produce the maps of synchrotron
+		# emission. This sub-cube is taken from the rotated cube of the component of
+		# the magnetic field perpendicular to the new line of sight
+		sub_mag_perp = rotated_mag_perp[ind_min:ind_max,ind_min_y:ind_max_y,ind_min:ind_max]
 
-	# Add a header keyword to the HDU header, specifying the reference pixel
-	# along the third axis
-	pri_hdu.header['CRPIX3'] = 1
+		# Print the shape of the obtained sub-cube to the screen
+		print 'Shape of the sub-cube is {}'.format(np.shape(sub_mag_perp))
 
-	# Add a header keyword to the HDU header, specifying the value of gamma
-	# at the reference pixel
-	pri_hdu.header['CRVAL3'] = 1.0
+		# Create a Numpy array to hold the calculated synchrotron emission maps
+		sync_arr = np.zeros((len(gamma_arr), np.shape(sub_mag_perp)[1],\
+		 np.shape(sub_mag_perp)[2]))
 
-	# Add a header keyword to the HDU header, specifying the increment in gamma
-	# along each slice of the array
-	pri_hdu.header['CDELT3'] = 0.5
+		# Loop over the array of gamma values, calculating the observed synchrotron
+		# emission map for each one
+		for i in range(len(gamma_arr)):
+			# Calculate the result of raising the perpendicular magnetic field strength
+			# to the power of gamma
+			mag_perp_gamma = np.power(sub_mag_perp, gamma_arr[i])
 
-	# Add a header keyword to the HDU header, describing what the third axis is
-	pri_hdu.header['CTYPE3'] = 'Gamma   '
+			# Integrate the perpendicular magnetic field strength raised to the power
+			# of gamma along the required axis, to calculate the observed synchrotron 
+			# map. This integration is performed by the trapezoidal rule. To normalise 
+			# the calculated synchrotron map, divide by the number of pixels along the 
+			# z-axis. Note the array is ordered by (z,y,x)!
+			# NOTE: Set dx to whatever the pixel spacing is
+			sync_arr[i] = np.trapz(mag_perp_gamma, dx = 1.0, axis = int_axis) /\
+			 np.shape(sub_mag_perp)[0]
 
-	# Save the produced synchrotron maps as a FITS file
-	mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4_' +\
-	 'rot_{}'.format(rot_ang_arr[j]) + '.fits')
+		# Print a message to the screen stating that the synchrotron maps have been
+		# produced
+		print 'Synchrotron maps calculated'
+
+		# Now that the synchrotron maps have been produced, we need to save the 
+		# produced maps as a FITS file
+
+		# To do this, we need to make a FITS header, so that anyone using the FITS
+		# file in the future will know what gamma values were used
+
+		# Create a primary HDU to contain the synchrotron data
+		pri_hdu = fits.PrimaryHDU(sync_arr)
+
+		# Add a header keyword to the HDU header, specifying the reference pixel
+		# along the third axis
+		pri_hdu.header['CRPIX3'] = 1
+
+		# Add a header keyword to the HDU header, specifying the value of gamma
+		# at the reference pixel
+		pri_hdu.header['CRVAL3'] = 1.0
+
+		# Add a header keyword to the HDU header, specifying the increment in gamma
+		# along each slice of the array
+		pri_hdu.header['CDELT3'] = 0.5
+
+		# Add a header keyword to the HDU header, describing what the third axis is
+		pri_hdu.header['CTYPE3'] = 'Gamma   '
+
+		if line_o_sight == 'y':
+			# Save the produced synchrotron maps as a FITS file
+			mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4y_' +\
+			 'rot_{}'.format(rot_ang_arr[j]) + '.fits')
+		elif line_o_sight == 'z':
+			# Save the produced synchrotron maps as a FITS file
+			mat2FITS_Image(sync_arr, pri_hdu.header, data_loc + 'synint_p1-4_' +\
+			 'rot_{}'.format(rot_ang_arr[j]) + '.fits')
+
+		# Print a message to state that the FITS file was saved successfully
+		print 'FITS file of synchrotron maps saved successfully {}'.format(rot_ang_arr[j])
+
+	# Close all of the fits files, to save memory
+	mag_x_fits.close()
+	mag_y_fits.close()
+	mag_z_fits.close()
 
 	# Print a message to state that the FITS file was saved successfully
-	print 'FITS file of synchrotron maps saved successfully'
+	print 'FITS file of synchrotron maps saved successfully {}'.format(sim)
 
 # All of the required maps have been saved, so print a message stating that
 # the script has finished

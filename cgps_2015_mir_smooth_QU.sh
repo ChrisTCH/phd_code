@@ -12,14 +12,19 @@
 data_loc=~/Documents/PhD/CGPS_2015/
 #data_loc=/import/shiva1/herron/cgps_2015/
 
+# Create a string that will be used to control what Q and U FITS files are used
+# to perform calculations, and that will be appended into the filename of 
+# anything produced in this script. This is either 'high_lat' or 'plane'
+save_append=plane
+
 # Create a variable that stores the input Stokes Q MIRIAD directory
-Q_dir=Sto_Q_high_lat.mir
+Q_dir=Sto_Q_${save_append}_final_mask.mir
 
 # Create a variable that specifies the full directory of the input Stokes Q
 Q_in=$data_loc$Q_dir
 
 # Create a variable that stores the input Stokes U MIRIAD directory
-U_dir=Sto_U_high_lat.mir
+U_dir=Sto_U_${save_append}_final_mask.mir
 
 # Create a variable that specifies the full directory of the input Stokes U
 U_in=$data_loc$U_dir
@@ -34,20 +39,20 @@ final_res_list="75 90 105 120 135 150 165 180 195 210 225 240 255 270 285 300
 for res in `echo $final_res_list`
 do
 	# Run MIRIAD's convol task on the Stokes Q map to smooth it
-	convol map=$Q_in fwhm=$res out=${data_loc}Sto_Q_high_lat_smooth2_${res}.mir options=final
+	convol map=$Q_in fwhm=$res out=${data_loc}Sto_Q_${save_append}_mask_smooth2_${res}.mir options=final
 
 	# Run MIRIAD's convol task on the Stokes U map to smooth it
-	convol map=$U_in fwhm=$res out=${data_loc}Sto_U_high_lat_smooth2_${res}.mir options=final
+	convol map=$U_in fwhm=$res out=${data_loc}Sto_U_${save_append}_mask_smooth2_${res}.mir options=final
 
 	# Run MIRIAD's fits task to convert the MIRIAD files to FITS files. For Stokes Q:
-	fits in=${data_loc}Sto_Q_high_lat_smooth2_${res}.mir op=xyout out=${data_loc}Sto_Q_high_lat_smooth2_${res}.fits
+	fits in=${data_loc}Sto_Q_${save_append}_mask_smooth2_${res}.mir op=xyout out=${data_loc}Sto_Q_${save_append}_mask_smooth2_${res}.fits
 
 	# Run MIRIAD's fits task to convert the MIRIAD files to FITS files. For Stokes U:
-	fits in=${data_loc}Sto_U_high_lat_smooth2_${res}.mir op=xyout out=${data_loc}Sto_U_high_lat_smooth2_${res}.fits
+	fits in=${data_loc}Sto_U_${save_append}_mask_smooth2_${res}.mir op=xyout out=${data_loc}Sto_U_${save_append}_mask_smooth2_${res}.fits
 
 	# Remove the MIRIAD directories that were produced by the smoothing
-	rm -rdiv ${data_loc}Sto_Q_high_lat_smooth2_${res}.mir
-	rm -rdiv ${data_loc}Sto_U_high_lat_smooth2_${res}.mir
+	rm -rdfv ${data_loc}Sto_Q_${save_append}_mask_smooth2_${res}.mir
+	rm -rdfv ${data_loc}Sto_U_${save_append}_mask_smooth2_${res}.mir
 
 	# Print something to show that the smoothing at this resolution has been done
 	echo "Smoothed to $res"

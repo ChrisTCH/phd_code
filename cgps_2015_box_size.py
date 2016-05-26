@@ -20,10 +20,10 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 # Create a variable that will determine how many data points are in each sample
-sample_size = 676
+sample_size = 21*21
 
 # Create a variable that controls how many samples will be drawn
-num_samples = 800
+num_samples = 100000
 
 # Randomly generate samples from a standard Gaussian distribution. Each row
 # of this 2D array represents a separate sample

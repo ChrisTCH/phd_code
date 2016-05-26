@@ -56,26 +56,26 @@ log_x = False, log_y = False):
 	
 	# Check to see if the x-axis of the histogram needs to be logarithmic
 	if log_x == True:
-	    # To create the logarithmic x-axis, it is necessary to manually
-	    # create logarithmically separated bin edges using the logspace
-	    # function of Numpy.
-	    bins = np.logspace(np.log10(np.amin(x_data)), \
-	    np.log10(np.amax(x_data)), num = bins + 1)
-	    
-	    # Make a histogram of the given data, with the logarithmically
-	    # separated bins. Note that the data array is flattened to one 
-	    # dimension
-       	    plt.hist(x_data.flatten(), bins = bins, log = log_y) 
-       	    
-       	    # Set the x-axis scale of the histogram to be logarithmic
-       	    ax.set_xscale('log')
+		# To create the logarithmic x-axis, it is necessary to manually
+		# create logarithmically separated bin edges using the logspace
+		# function of Numpy.
+		bins = np.logspace(np.log10(np.amin(x_data)), \
+		np.log10(np.amax(x_data)), num = bins + 1)
+		
+		# Make a histogram of the given data, with the logarithmically
+		# separated bins. Note that the data array is flattened to one 
+		# dimension
+		plt.hist(x_data.flatten(), bins = bins, log = log_y) 
+		    
+		# Set the x-axis scale of the histogram to be logarithmic
+		ax.set_xscale('log')
 	    
 	elif log_x == False:
-            # In this case the x-axis is not logarithmic, so create the 
-	    # histogram with a linear x-axis.
-       	    # Make a histogram of the given data, with the specified number of 
-       	    # bins. Note that the data array is flattened to one dimension
-       	    plt.hist(x_data.flatten(), bins = bins, log = log_y)    
+		# In this case the x-axis is not logarithmic, so create the 
+		# histogram with a linear x-axis.
+		# Make a histogram of the given data, with the specified number of 
+		# bins. Note that the data array is flattened to one dimension
+		plt.hist(x_data.flatten(), bins = bins, log = log_y)    
 	
 	# Add the specified x-axis label to the plot
 	plt.xlabel(x_label)

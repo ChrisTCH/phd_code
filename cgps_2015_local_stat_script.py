@@ -36,12 +36,12 @@ data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
 # through the script and analysed, e.g. the polarisation gradient, or 
 # polarisation intensity. FITS files for the chosen quantity will be loaded
 # by the script. Could be 'Polar_Grad' or 'Polar_Inten', for example
-data_2_load = 'Polar_Grad'
+data_2_load = 'Norm_Polar_Grad'
 
 # Create a string that will be used to control what FITS files are used
 # to perform calculations, and that will be appended into the filename of 
 # anything produced in this script. This is either 'high_lat' or 'plane'
-save_append = 'plane'
+save_append = 'plane_all_mask'
 
 # Create an array that specifies all of the final resolution values that were 
 # used to create mosaics. This code will calculate quantities for each of the
@@ -50,7 +50,7 @@ final_res_array = np.array([75, 90, 105, 120, 135, 150, 165, 180, 195, 210,\
  225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390, 405, 420, 450,\
  480, 510, 540, 570, 600, 630, 660, 720, 780, 840, 900, 960, 1020, 1080, 1140,\
  1200])
-#final_res_array = np.array([75])
+# final_res_array = np.array([150])
 
 # Create a list that specifies all of the files for which we want to calculate
 # local statistics
@@ -66,7 +66,7 @@ output_files = [data_loc + '{}_{}_smooth2_{}'.format(data_2_load, save_append,\
 # are calculated for the input data. For each statistic chosen, FITS files of
 # the locally calculated statistic will be produced for each final resolution
 # value, and saved in the same directory as the CGPS data.
-# Valid statistics include 'skewness', 'kurtosis'
+# Valid statistics include 'mean', 'stdev', skewness', 'kurtosis'
 stat_list = ['skewness']
 
 # Specify the size of each pixel in the CGPS survey, in degrees

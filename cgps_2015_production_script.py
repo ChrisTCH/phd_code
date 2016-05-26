@@ -26,6 +26,9 @@ from calc_Sto_1Diff import calc_Sto_1Diff
 # the Stokes parameters.
 from calc_Polar_Inten import calc_Polar_Inten
 from calc_Polar_Grad import calc_Polar_Grad
+from calc_Rad_Direc_Amp import calc_Rad_Direc_Amp
+from calc_Tang_Direc_Amp import calc_Tang_Direc_Amp
+from calc_Direc_Amp_Max import calc_Direc_Amp_Max
 
 # Import utility functions
 from mat2FITS_Image import mat2FITS_Image
@@ -39,7 +42,7 @@ data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
 # Create a string that will be used to control what Q and U FITS files are used
 # to perform calculations, and that will be appended into the filename of 
 # anything produced in this script. This is either 'high_lat' or 'plane'
-save_append = 'high_lat'
+save_append = 'plane_all_mask'
 
 # Create an array that specifies all of the final resolution values that were 
 # used to create mosaics. This code will calculate quantities for each of the
@@ -103,30 +106,30 @@ for i in range(len(final_res_array)):
 	# intensity has been calculated successfully.
 	print 'Observed polarisation intensity calculated successfully.'
 
-	# Convert the matrix of polarisation intensity values into a FITS file, 
-	# using the header information of the CGPS data. Also save the FITS file 
-	# that is produced by the function.
-	polar_inten_FITS = mat2FITS_Image(polar_inten, cgps_Q_hdr,\
-	data_loc + 'Polar_Inten_{}_smooth2_{}.fits'.format(save_append,\
-	 final_res_array[i]))
+	# # Convert the matrix of polarisation intensity values into a FITS file, 
+	# # using the header information of the CGPS data. Also save the FITS file 
+	# # that is produced by the function.
+	# polar_inten_FITS = mat2FITS_Image(polar_inten, cgps_Q_hdr,\
+	# data_loc + 'Polar_Inten_{}_smooth2_{}.fits'.format(save_append,\
+	#  final_res_array[i]))
 
-	# Print a message to the screen to show that the FITS file was produced and
-	# saved successfully.
-	print 'FITS file successfully saved for the polarisation intensity.'
+	# # Print a message to the screen to show that the FITS file was produced and
+	# # saved successfully.
+	# print 'FITS file successfully saved for the polarisation intensity.'
 
-	# If we are calculating quantities for the high latitude extension of the 
-	# CGPS survey, then produce an image of the polarisation intensity
-	if save_append == 'high_lat':
-		# Create an image of the observed polarisation intensity for the CGPS
-		# data using aplpy and the produced FITS file. This image is 
-		# automatically saved using the given filename.
-		fits2aplpy(polar_inten_FITS, data_loc+'Polar_Inten_{}_smooth2_{}.png'.\
-			format(save_append, final_res_array[i]), colour = 'hot',\
-			 convention = 'wells')
+	# # If we are calculating quantities for the high latitude extension of the 
+	# # CGPS survey, then produce an image of the polarisation intensity
+	# if save_append == 'high_lat':
+	# 	# Create an image of the observed polarisation intensity for the CGPS
+	# 	# data using aplpy and the produced FITS file. This image is 
+	# 	# automatically saved using the given filename.
+	# 	fits2aplpy(polar_inten_FITS, data_loc+'Polar_Inten_{}_smooth2_{}.png'.\
+	# 		format(save_append, final_res_array[i]), colour = 'hot',\
+	# 		 convention = 'wells')
 
-		# Print a message to the screen to show that the image of the observed
-		# polarisation intensity has been successfully produced and saved.
-		print 'Image of the observed polarisation intensity successfully saved.\n'
+	# 	# Print a message to the screen to show that the image of the observed
+	# 	# polarisation intensity has been successfully produced and saved.
+	# 	print 'Image of the observed polarisation intensity successfully saved.\n'
 
 	#--------------------- POLARISATION GRADIENT MAGNITUDE ---------------------
 
@@ -138,31 +141,144 @@ for i in range(len(final_res_array)):
 	# polarisation gradient has been calculated successfully.
 	print 'Magnitude of the polarisation gradient calculated successfully.'
 
-	# Convert the matrix of polarisation gradient values into a FITS file, using
-	# the header information of the CGPS data. Also save the FITS file that is
-	# produced by the function.
-	polar_grad_FITS = mat2FITS_Image(polar_grad, cgps_Q_hdr,\
-	data_loc + 'Polar_Grad_{}_smooth2_{}.fits'.format(save_append,\
+	# # Convert the matrix of polarisation gradient values into a FITS file, using
+	# # the header information of the CGPS data. Also save the FITS file that is
+	# # produced by the function.
+	# polar_grad_FITS = mat2FITS_Image(polar_grad, cgps_Q_hdr,\
+	# data_loc + 'Polar_Grad_{}_smooth2_{}.fits'.format(save_append,\
+	#  final_res_array[i]))
+
+	# # Print a message to the screen to show that the FITS file was produced and
+	# # saved successfully.
+	# print 'FITS file successfully saved for the magnitude of the polarisation '\
+	#  + 'gradient.'
+
+	# # If we are calculating quantities for the high latitude extension of the 
+	# # CGPS survey, then produce an image of the polarisation gradient
+	# if save_append == 'high_lat':
+	# 	# Create an image of the observed polarisation gradient for the CGPS
+	# 	# data using aplpy and the produced FITS file. This image is 
+	# 	# automatically saved using the given filename.
+	# 	fits2aplpy(polar_grad_FITS, data_loc+'Polar_Grad_{}_smooth2_{}.png'.\
+	# 		format(save_append, final_res_array[i]), colour = 'hot',\
+	# 		 convention = 'wells')
+
+	# 	# Print a message to the screen to show that the image of the observed
+	# 	# polarisation intensity has been successfully produced and saved.
+	# 	print 'Image of the observed polarisation gradient successfully saved.\n'
+
+	#------------------- Normalised Polarisation Gradient ----------------------
+
+	# # Use the calculated polarisation gradient and polarised intensity to 
+	# # calculate the normalised polarisation gradient
+	# norm_polar_grad = polar_grad / polar_inten
+
+	# # Print a message to the screen to show that the 
+	# # normalised polarisation gradient has been calculated successfully.
+	# print 'Normalised polarisation gradient calculated successfully.'
+
+	# # Convert the matrix of normalised polarisation gradient values into a FITS 
+	# # file, using the header information of the CGPS data. Also save the FITS 
+	# # file that is produced by the function.
+	# norm_polar_grad_FITS = mat2FITS_Image(norm_polar_grad, cgps_Q_hdr,\
+	# data_loc + 'Norm_Polar_Grad_{}_smooth2_{}.fits'.format(save_append,\
+	#  final_res_array[i]))
+
+	# # Print a message to the screen to show that the FITS file was produced and
+	# # saved successfully.
+	# print 'FITS file successfully saved for the normalised polarisation '\
+	#  + 'gradient.'
+
+	#------------- Maximum Radial Component Directional Derivative -------------
+
+	# Calculate the maximum value of the radial component of the directional
+	# derivative at each pixel of the image, using the Stokes Q and U values
+	# and their derivatives
+	rad_direc_amp = calc_Rad_Direc_Amp(Sto_Q, Sto_U, dQ_dy, dQ_dx, dU_dy, dU_dx)
+
+	# Print a message to the screen to show that the maximum of the radial
+	# component of the directional derivative has been calculated successfully.
+	print 'Maximum Radial Component Direc Deriv calculated successfully.'
+
+	# # Convert the matrix of maximum radial component values into a FITS file, 
+	# # using the header information of the CGPS data. Also save the FITS file 
+	# # that is produced by the function.
+	# rad_direc_amp_FITS = mat2FITS_Image(rad_direc_amp, cgps_Q_hdr,\
+	# data_loc + 'Rad_Direc_Amp_{}_smooth2_{}.fits'.format(save_append,\
+	#  final_res_array[i]))
+
+	# # Print a message to the screen to show that the FITS file was produced and
+	# # saved successfully.
+	# print 'FITS file successfully saved for the radial component of the '\
+	#  + 'directional derivative.'
+
+	#----------- Maximum Tangential Component Directional Derivative -----------
+
+	# Calculate the maximum value of the tangential component of the directional
+	# derivative at each pixel of the image, using the Stokes Q and U values
+	# and their derivatives
+	tang_direc_amp = calc_Tang_Direc_Amp(Sto_Q, Sto_U, dQ_dy, dQ_dx, dU_dy, dU_dx)
+
+	# Print a message to the screen to show that the maximum of the tangential
+	# component of the directional derivative has been calculated successfully.
+	print 'Maximum Tangential Component Direc Deriv calculated successfully.'
+
+	# # Convert the matrix of maximum tangential component values into a FITS file
+	# # using the header information of the CGPS data. Also save the FITS file 
+	# # that is produced by the function.
+	# tang_direc_amp_FITS = mat2FITS_Image(tang_direc_amp, cgps_Q_hdr,\
+	# data_loc + 'Tang_Direc_Amp_{}_smooth2_{}.fits'.format(save_append,\
+	#  final_res_array[i]))
+
+	# # Print a message to the screen to show that the FITS file was produced and
+	# # saved successfully.
+	# print 'FITS file successfully saved for the tangential component of the '\
+	#  + 'directional derivative.'
+
+	#---- Difference Radial and Tangential Components Directional Derivative ---
+
+	# Calculate the difference between the maximum values of the radial and 
+	# tangential components of the directional derivative
+	diff_rad_tang_direc = rad_direc_amp - tang_direc_amp
+
+	# Print a message to the screen to show that the maximum of the tangential
+	# component of the directional derivative has been calculated successfully.
+	print 'Difference Radial - Tangential Component Direc Deriv calculated successfully.'
+
+	# Convert the matrix of difference values into a FITS file
+	# using the header information of the CGPS data. Also save the FITS file 
+	# that is produced by the function.
+	diff_rad_tang_direc_FITS = mat2FITS_Image(diff_rad_tang_direc, cgps_Q_hdr,\
+	data_loc + 'Diff_Rad_Tang_Direc_{}_smooth2_{}.fits'.format(save_append,\
 	 final_res_array[i]))
 
 	# Print a message to the screen to show that the FITS file was produced and
 	# saved successfully.
-	print 'FITS file successfully saved for the magnitude of the polarisation '\
-	 + 'gradient.'
+	print 'FITS file successfully saved for the difference between the radial '\
+	 + 'tangential components of the directional derivative.'
 
-	# If we are calculating quantities for the high latitude extension of the 
-	# CGPS survey, then produce an image of the polarisation gradient
-	if save_append == 'high_lat':
-		# Create an image of the observed polarisation gradient for the CGPS
-		# data using aplpy and the produced FITS file. This image is 
-		# automatically saved using the given filename.
-		fits2aplpy(polar_grad_FITS, data_loc+'Polar_Grad_{}_smooth2_{}.png'.\
-			format(save_append, final_res_array[i]), colour = 'hot',\
-			 convention = 'wells')
+	#---------------- Maximum Amplitude Directional Derivative -----------------
 
-		# Print a message to the screen to show that the image of the observed
-		# polarisation intensity has been successfully produced and saved.
-		print 'Image of the observed polarisation gradient successfully saved.\n'
+	# # Calculate the maximum value of the amplitude of the directional
+	# # derivative at each pixel of the image, using the Stokes Q and U values
+	# # and their derivatives
+	# direc_amp_max = calc_Direc_Amp_Max(Sto_Q, Sto_U, dQ_dy, dQ_dx, dU_dy, dU_dx)
+
+	# # Print a message to the screen to show that the maximum amplitude of the
+	# # directional derivative has been calculated successfully.
+	# print 'Maximum Amplitude Direc Deriv calculated successfully.'
+
+	# # Convert the matrix of maximum amplitude values into a FITS file
+	# # using the header information of the CGPS data. Also save the FITS file 
+	# # that is produced by the function.
+	# direc_amp_max_FITS = mat2FITS_Image(direc_amp_max, cgps_Q_hdr,\
+	# data_loc + 'Direc_Amp_Max_{}_smooth2_{}.fits'.format(save_append,\
+	#  final_res_array[i]))
+
+	# # Print a message to the screen to show that the FITS file was produced and
+	# # saved successfully.
+	# print 'FITS file successfully saved for the maximum amplitude of the '\
+	#  + 'directional derivative.'
 
 	#---------------------------------------------------------------------------
 

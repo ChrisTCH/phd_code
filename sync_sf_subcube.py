@@ -32,7 +32,7 @@ num_bins = 20
 
 # Create a string for the directory that contains the simulated synchrotron
 # intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/Madison_2014/Simul_Data/'
+simul_loc = '/Volumes/CAH_ExtHD/Madison_2014/Simul_Data/'
 
 # Create a string for the specific simulated data set to use in calculations.
 # The directories end in:
@@ -254,8 +254,8 @@ for j in range(len(simul_arr)):
 		# function is used in the calculation, as this is the part that is 
 		# close to a straight line. 
 		spec_ind_data = np.polyfit(np.log10(\
-			sf_rad_arr[0:np.ceil(num_bins/3.0)]),\
-			np.log10(sf[0:np.ceil(num_bins/3.0)]), 1, full = True)
+			sf_rad_arr[11:16]),\
+			np.log10(sf[11:16]), 1, full = True)
 
 		# Extract the returned coefficients from the polynomial fit
 		coeff = spec_ind_data[0]
