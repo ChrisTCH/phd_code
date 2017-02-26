@@ -36,7 +36,10 @@ log = True
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/CFed_2016/'
+simul_loc = '/Volumes/CAH_ExtHD/CFed_2016/'
+
+# Create a string for the directory in which the plots should be saved
+save_loc = '/Users/chrisherron/Documents/PhD/CFed_2016/'
 
 # Create a string for the specific simulated data set to use in calculations.
 # The directories end in:
@@ -311,7 +314,7 @@ plt.legend(loc = 4, fontsize = 10, numpoints=1)
 plt.setp( ax1.get_xticklabels(), visible=False)
 
 # Add a label to the y-axis
-plt.ylabel('Mean', fontsize = 18)
+plt.ylabel(r'Mean $\mu_{\mathcal{I}}$', fontsize = 16)
 
 # Create an axis for the second subplot to be produced, which is for
 # angular resolution
@@ -345,7 +348,7 @@ plt.errorbar(zeta, stdev_avg_arr_n[25,:],fmt='r-^',yerr=stdev_err_arr_n[25,:])
 plt.errorbar(zeta, stdev_avg_arr_n[49,:],fmt='g-s',yerr=stdev_err_arr_n[49,:])
 
 # Add a label to the y-axis
-plt.ylabel('Standard Deviation', fontsize = 18)
+plt.ylabel(r'Standard Deviation $\sigma_{\mathcal{I}}$', fontsize = 16)
 
 # Create an axis for the fourth subplot to be produced, which is for the 
 # standard deviation at different angular resolutions
@@ -371,7 +374,7 @@ plt.figtext(0.26, 0.94, 'Noise', fontsize = 18)
 plt.figtext(0.60, 0.94, 'Angular Resolution', fontsize = 18)
 
 # Save the figure using the given filename and format
-plt.savefig(simul_loc + 'Publication_Plots/fig4.eps', dpi = save_dpi, format = 'eps')
+plt.savefig(save_loc + 'Publication_Plots/fig4.eps', dpi = save_dpi, format = 'eps')
 
 # Close the figure, now that it has been saved.
 plt.close()

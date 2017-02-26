@@ -36,12 +36,16 @@ data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
 # through the script and analysed, e.g. the polarisation gradient, or 
 # polarisation intensity. FITS files for the chosen quantity will be loaded
 # by the script. Could be 'Polar_Grad' or 'Polar_Inten', for example
-data_2_load = 'Norm_Polar_Grad'
+data_2_load = 'Polar_Grad'
 
 # Create a string that will be used to control what FITS files are used
 # to perform calculations, and that will be appended into the filename of 
 # anything produced in this script. This is either 'high_lat' or 'plane'
 save_append = 'plane_all_mask'
+
+# Specify the number of beams that should be across half the width of the
+# box used to calculate the statistics around each pixel
+num_beams = 60
 
 # Create an array that specifies all of the final resolution values that were 
 # used to create mosaics. This code will calculate quantities for each of the
@@ -59,8 +63,8 @@ input_files = [data_loc + '{}_{}_smoothed/'.format(data_2_load, save_append)\
 
 # Create a list that specifies the filenames to use to save all of the 
 # produced files
-output_files = [data_loc + '{}_{}_smooth2_{}'.format(data_2_load, save_append,\
- res) for res in final_res_array]
+output_files = [data_loc + '{}_{}_smooth2_{}_beams{}'.format(data_2_load, save_append,\
+ res, num_beams) for res in final_res_array]
 
 # Create a list of strings, that will be used to control what local statistics
 # are calculated for the input data. For each statistic chosen, FITS files of
@@ -77,7 +81,7 @@ pix_size_deg = 4.9999994 * np.power(10.0, -3.0)
 # the image being considered, so that we always have a certain number of 
 # beamwidths within the box. This is given as the largest integer that fits 
 # the required number of beamwidths.
-box_halfwidths = np.asarray([int(np.ceil(10 * res/(pix_size_deg * 3600)))\
+box_halfwidths = np.asarray([int(np.ceil(num_beams * res/(pix_size_deg * 3600)))\
  for res in final_res_array])
 
 # Run the function that calculates the local statistics for each image. This

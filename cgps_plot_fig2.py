@@ -19,13 +19,13 @@ import matplotlib.pyplot as plt
 import aplpy
 
 # Create a string object which stores the directory of the CGPS data
-data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
+data_loc = '/Volumes/CAH_ExtHD/CGPS_2015/'
 
 # Create a string that will be used to save the figure
 filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/'
 
 # Set the dpi at which to save the image
-save_dpi = 300
+save_dpi = 100
 
 # Set the convention for cartesian co-ordinates used for the CGPS
 convention = 'wells'
@@ -72,7 +72,7 @@ cgps_gradP_150_fits = fits.open(data_loc +\
 # Open the FITS file that contains the skewness of the polarisation gradient
 # smoothed to an angular resolution of 150 arcseconds, with 1% truncation,
 # for the entire Galactic plane.
-cgps_skew_150_fits = fits.open(data_loc +\
+cgps_skew_150_fits = fits.open('/Users/chrisherron/Documents/PhD/CGPS_2015/' +\
  'Polar_Grad_plane_all_mask_trunc1_skew_sparse/'+\
  'Polar_Grad_plane_all_mask_smooth2_150_skewness_sparse.fits')
 
@@ -128,6 +128,7 @@ fig1.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.hide_xtick_labels()
+fig1.ticks.set_xspacing(5)
 
 # Add an image of the polarisation at 150 arcsecond resolution to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -170,6 +171,7 @@ fig2.tick_labels.set_font(size='small')
 # Hide the x axis label and ticks for this figure
 fig2.hide_xaxis_label()
 fig2.hide_xtick_labels()
+fig2.ticks.set_xspacing(5)
 
 # Add an image of the skewness to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -212,6 +214,7 @@ fig3.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig3.hide_xaxis_label()
 fig3.tick_labels.set_xformat('ddd.d')
+fig3.ticks.set_xspacing(5)
 
 # Add a label to the x-axis
 plt.figtext(0.53, 0.38, 'Galactic Longitude', ha = 'center', \
@@ -222,7 +225,7 @@ plt.figtext(0.005, 0.65, 'Galactic Latitude', ha = 'left', \
     va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Save the image using the given filename
-fig_a.savefig(filename + 'fig2a.eps', dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig_a.savefig(filename + 'fig7.png', dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig_a)
@@ -278,6 +281,7 @@ fig1.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.hide_xtick_labels()
+fig1.ticks.set_xspacing(5)
 
 # Add an image of the polarisation at 150 arcsecond resolution to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -320,6 +324,7 @@ fig2.tick_labels.set_font(size='small')
 # Hide the x axis label and ticks for this figure
 fig2.hide_xaxis_label()
 fig2.hide_xtick_labels()
+fig2.ticks.set_xspacing(5)
 
 # Add an image of the skewness to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -362,6 +367,7 @@ fig3.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig3.hide_xaxis_label()
 fig3.tick_labels.set_xformat('ddd.d')
+fig3.ticks.set_xspacing(5)
 
 # Add a label to the x-axis
 plt.figtext(0.53, 0.38, 'Galactic Longitude', ha = 'center', \
@@ -372,7 +378,7 @@ plt.figtext(0.005, 0.65, 'Galactic Latitude', ha = 'left', \
     va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Save the image using the given filename
-fig_b.savefig(filename + 'fig2b.eps', dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig_b.savefig(filename + 'fig6.png', dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig_b)
@@ -428,6 +434,7 @@ fig1.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.hide_xtick_labels()
+fig1.ticks.set_xspacing(5)
 
 # Add an image of the polarisation at 150 arcsecond resolution to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -470,6 +477,7 @@ fig2.tick_labels.set_font(size='small')
 # Hide the x axis label and ticks for this figure
 fig2.hide_xaxis_label()
 fig2.hide_xtick_labels()
+fig2.ticks.set_xspacing(5)
 
 # Add an image of the skewness to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -512,6 +520,7 @@ fig3.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig3.hide_xaxis_label()
 fig3.tick_labels.set_xformat('ddd.d')
+fig3.ticks.set_xspacing(5)
 
 # Add a label to the x-axis
 plt.figtext(0.53, 0.38, 'Galactic Longitude', ha = 'center', \
@@ -522,7 +531,7 @@ plt.figtext(0.005, 0.65, 'Galactic Latitude', ha = 'left', \
     va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Save the image using the given filename
-fig_c.savefig(filename + 'fig2c.eps', dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig_c.savefig(filename + 'fig5.png', dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig_c)
@@ -578,6 +587,7 @@ fig1.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.hide_xtick_labels()
+fig1.ticks.set_xspacing(5)
 
 # Add an image of the polarisation at 150 arcsecond resolution to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -620,6 +630,7 @@ fig2.tick_labels.set_font(size='small')
 # Hide the x axis label and ticks for this figure
 fig2.hide_xaxis_label()
 fig2.hide_xtick_labels()
+fig2.ticks.set_xspacing(5)
 
 # Add an image of the skewness to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -662,6 +673,7 @@ fig3.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig3.hide_xaxis_label()
 fig3.tick_labels.set_xformat('ddd.d')
+fig3.ticks.set_xspacing(5)
 
 # Add a label to the x-axis
 plt.figtext(0.53, 0.38, 'Galactic Longitude', ha = 'center', \
@@ -672,7 +684,7 @@ plt.figtext(0.005, 0.65, 'Galactic Latitude', ha = 'left', \
     va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Save the image using the given filename
-fig_d.savefig(filename + 'fig2d.eps', dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig_d.savefig(filename + 'fig4.png', dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig_d)
@@ -728,6 +740,7 @@ fig1.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.hide_xtick_labels()
+fig1.ticks.set_xspacing(5)
 
 # Add an image of the polarisation at 150 arcsecond resolution to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -770,6 +783,7 @@ fig2.tick_labels.set_font(size='small')
 # Hide the x axis label and ticks for this figure
 fig2.hide_xaxis_label()
 fig2.hide_xtick_labels()
+fig2.ticks.set_xspacing(5)
 
 # Add an image of the skewness to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -812,6 +826,7 @@ fig3.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig3.hide_xaxis_label()
 fig3.tick_labels.set_xformat('ddd.d')
+fig3.ticks.set_xspacing(5)
 
 # Add a label to the x-axis
 plt.figtext(0.53, 0.38, 'Galactic Longitude', ha = 'center', \
@@ -822,7 +837,7 @@ plt.figtext(0.005, 0.65, 'Galactic Latitude', ha = 'left', \
     va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Save the image using the given filename
-fig_e.savefig(filename + 'fig2e.eps', dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig_e.savefig(filename + 'fig3.png', dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig_e)
@@ -878,6 +893,7 @@ fig1.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.hide_xtick_labels()
+fig1.ticks.set_xspacing(5)
 
 # Add an image of the polarisation at 150 arcsecond resolution to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -920,6 +936,7 @@ fig2.tick_labels.set_font(size='small')
 # Hide the x axis label and ticks for this figure
 fig2.hide_xaxis_label()
 fig2.hide_xtick_labels()
+fig2.ticks.set_xspacing(5)
 
 # Add an image of the skewness to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
@@ -962,6 +979,7 @@ fig3.tick_labels.set_font(size='small')
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig3.hide_xaxis_label()
 fig3.tick_labels.set_xformat('ddd.d')
+fig3.ticks.set_xspacing(5)
 
 # Add a label to the x-axis
 plt.figtext(0.53, 0.38, 'Galactic Longitude', ha = 'center', \
@@ -972,7 +990,7 @@ plt.figtext(0.005, 0.65, 'Galactic Latitude', ha = 'left', \
     va = 'center', fontsize = 20, rotation = 'vertical')
 
 # Save the image using the given filename
-fig_f.savefig(filename + 'fig2f.eps', dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig_f.savefig(filename + 'fig2.png', dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig_f)

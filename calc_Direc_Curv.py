@@ -27,7 +27,8 @@ import numpy as np
 # from the first and second order partial derivatives of the Stokes Q and U 
 # values.
 def calc_Direc_Curv(dQ_dy = None, dQ_dx = None, dU_dy = None, dU_dx = None,\
-d2Q_dy2 = None, d2Q_dx2 = None, d2U_dy2 = None, d2U_dx2 = None, num_theta = 2):
+d2Q_dy2 = None, d2Q_dx2 = None, d2U_dy2 = None, d2U_dx2 = None,\
+d2Q_dydx = None, d2U_dydx = None, num_theta = 2):
     '''
     Description
         This function calculates the directional curvature of the complex
@@ -55,6 +56,11 @@ d2Q_dy2 = None, d2Q_dx2 = None, d2U_dy2 = None, d2U_dx2 = None, num_theta = 2):
         d2U_dy2, d2U_dx2 - Second order partial derivatives of Stokes U with
                        respect to the vertical and horizontal axes of the image
                        respectively. These arrays must have the same size as the
+                       arrays containing the values of the partial derivatives
+                       of Stokes Q.
+        d2Q_dydx, d2U_dydx - Second order partial derivatives of Stokes Q and U
+                       with respect to the vertical and horizontal axes of the 
+                       image. These arrays must have the same size as the
                        arrays containing the values of the partial derivatives
                        of Stokes Q.
         num_theta - The number of theta values for which to evaluate the 
@@ -139,18 +145,20 @@ d2Q_dy2 = None, d2Q_dx2 = None, d2U_dy2 = None, d2U_dx2 = None, num_theta = 2):
         
         # Calculate the numerator of the directional curvature
         numer = cos3theta[i] * (dQ_dx * d2U_dx2 - dU_dx * d2Q_dx2) +\
+        2 * cos2_sin_theta[i] * (dQ_dx * d2U_dydx - dU_dx * d2Q_dydx) +\
         cos2_sin_theta[i] * (dQ_dy * d2U_dx2 - dU_dy * d2Q_dx2) +\
+        2 * cos_sin2_theta[i] * (dQ_dy * d2U_dydx - dU_dy * d2Q_dydx) +\
         cos_sin2_theta[i] * (dQ_dx * d2U_dy2 - dU_dx * d2Q_dy2) +\
         sin3theta[i] * (dQ_dy * d2U_dy2 - dU_dy * d2Q_dy2)
         
         # Calculate the directional curvature image for this value of theta
-        #direc_curv[i] = numer / denom
+        direc_curv[i] = numer / denom
         
         # Calculate the numerator only to avoid a noisy data cube
-        direc_curv[i] = numer
+        # direc_curv[i] = numer
         
         # Calculate the radius of curvature
-        #direc_curv[i] = denom / numer
+        # direc_curv[i] = denom / numer
     
     # Return the directional curvature data cube to the caller
     return direc_curv, theta

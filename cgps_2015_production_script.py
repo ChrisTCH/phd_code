@@ -37,12 +37,12 @@ from hist_plot import hist_plot
 from mat_plot import mat_plot
 
 # Create a string object which stores the directory of the CGPS data
-data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
+data_loc = '/Volumes/CAH_ExtHD/CGPS_2015/'
 
 # Create a string that will be used to control what Q and U FITS files are used
 # to perform calculations, and that will be appended into the filename of 
 # anything produced in this script. This is either 'high_lat' or 'plane'
-save_append = 'plane_all_mask'
+save_append = 'plane'
 
 # Create an array that specifies all of the final resolution values that were 
 # used to create mosaics. This code will calculate quantities for each of the
@@ -200,17 +200,17 @@ for i in range(len(final_res_array)):
 	# component of the directional derivative has been calculated successfully.
 	print 'Maximum Radial Component Direc Deriv calculated successfully.'
 
-	# # Convert the matrix of maximum radial component values into a FITS file, 
-	# # using the header information of the CGPS data. Also save the FITS file 
-	# # that is produced by the function.
-	# rad_direc_amp_FITS = mat2FITS_Image(rad_direc_amp, cgps_Q_hdr,\
-	# data_loc + 'Rad_Direc_Amp_{}_smooth2_{}.fits'.format(save_append,\
-	#  final_res_array[i]))
+	# Convert the matrix of maximum radial component values into a FITS file, 
+	# using the header information of the CGPS data. Also save the FITS file 
+	# that is produced by the function.
+	rad_direc_amp_FITS = mat2FITS_Image(rad_direc_amp, cgps_Q_hdr,\
+	data_loc + 'Rad_Direc_Amp_{}_smooth2_{}.fits'.format(save_append,\
+	 final_res_array[i]))
 
-	# # Print a message to the screen to show that the FITS file was produced and
-	# # saved successfully.
-	# print 'FITS file successfully saved for the radial component of the '\
-	#  + 'directional derivative.'
+	# Print a message to the screen to show that the FITS file was produced and
+	# saved successfully.
+	print 'FITS file successfully saved for the radial component of the '\
+	 + 'directional derivative.'
 
 	#----------- Maximum Tangential Component Directional Derivative -----------
 
@@ -223,17 +223,17 @@ for i in range(len(final_res_array)):
 	# component of the directional derivative has been calculated successfully.
 	print 'Maximum Tangential Component Direc Deriv calculated successfully.'
 
-	# # Convert the matrix of maximum tangential component values into a FITS file
-	# # using the header information of the CGPS data. Also save the FITS file 
-	# # that is produced by the function.
-	# tang_direc_amp_FITS = mat2FITS_Image(tang_direc_amp, cgps_Q_hdr,\
-	# data_loc + 'Tang_Direc_Amp_{}_smooth2_{}.fits'.format(save_append,\
-	#  final_res_array[i]))
+	# Convert the matrix of maximum tangential component values into a FITS file
+	# using the header information of the CGPS data. Also save the FITS file 
+	# that is produced by the function.
+	tang_direc_amp_FITS = mat2FITS_Image(tang_direc_amp, cgps_Q_hdr,\
+	data_loc + 'Tang_Direc_Amp_{}_smooth2_{}.fits'.format(save_append,\
+	 final_res_array[i]))
 
-	# # Print a message to the screen to show that the FITS file was produced and
-	# # saved successfully.
-	# print 'FITS file successfully saved for the tangential component of the '\
-	#  + 'directional derivative.'
+	# Print a message to the screen to show that the FITS file was produced and
+	# saved successfully.
+	print 'FITS file successfully saved for the tangential component of the '\
+	 + 'directional derivative.'
 
 	#---- Difference Radial and Tangential Components Directional Derivative ---
 

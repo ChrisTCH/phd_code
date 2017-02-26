@@ -94,7 +94,8 @@ d2Q_dy2 = None, d2Q_dx2 = None, d2U_dy2 = None, d2U_dx2 = None):
     #print 'Average value in quad_curv is {}'.format(np.mean(quad_curv))
     #print 'Median value in quad_curv is {}'.format(np.median(quad_curv))
     
+    # Calculate the quadrature of the curvatures without the denominator
+    # quad_curv = np.sqrt(np.power(num_1,2.0) + np.power(num_2,2.0))
+
     # Return the quadrature of the curvatures to the caller
     return quad_curv
-    
-    

@@ -30,12 +30,13 @@ def calc_Sto_2Diff(dQ_dy, dQ_dx, dU_dy, dU_dx, pix_sep = 1.0):
     Required Input
         dQ_dy, dQ_dx - Numpy arrays containing the value of the first order 
                    partial derivatives of Stokes Q along the y and x axes
-                   respectively. The arrays must conform to the convention that
-                   the first dimension represents the y-axis, and the second
-                   dimension represents the x-axis, so that each entry of an
-                   array represents a fixed y-value, and contains an array
-                   giving the partial derivative of Stokes Q value at each
-                   x-value.
+                   respectively. The array must conform to the 
+                   convention that the second last dimension represents the 
+                   y-axis, and the last dimension represents the x-axis, so that
+                   each entry of the array represents a fixed y-value, and 
+                   contains an array giving the Stokes Q value at each x-value.
+                   For a 2D array, the dimensions should be ordered as (y,x),
+                   and for a 3D array (-,y,x).
         dU_dy, dU_dx - Numpy arrays containing the value of the first order
                    partial derivatives of Stokes U along the y and x axes
                    respectively. Must have the same size as the arrays for 
@@ -61,24 +62,37 @@ def calc_Sto_2Diff(dQ_dy, dQ_dx, dU_dy, dU_dx, pix_sep = 1.0):
                        arrays for partial derivatives of Stokes U.
     '''
     
+    # Calculate the number of dimensions in the given arrays
+    num_dim = len(np.shape(dQ_dy))
+
+    # Depending on the number of dimensions, set parameters that control the
+    # axes that we differentiate across. These values represent the index
+    # for the correct axes
+    axis_y = num_dim - 2
+    axis_x = num_dim - 1
+
     # Using the gradient function of numpy, calculate two of the second
     # derivatives of Stokes Q. Note that this line calculates the derivative
     # of dQ_dy with respect to y and x, thus calculating d2Q_dy2 and d2Q_dxdy.
     # pix_sep is used to make sure that the returned matrices have the correct
     # units.
-    d2Q_dy2, d2Q_dxdy = np.gradient(dQ_dy, pix_sep)
+    d2Q_dy2 = np.gradient(dQ_dy, pix_sep, axis = axis_y)
+    d2Q_dxdy = np.gradient(dQ_dy, pix_sep, axis = axis_x)
     
     # Calculate the derivative of dQ_dx with respect to y and x, thus 
     # calculating d2Q_dydx and d2Q_dx2
-    d2Q_dydx, d2Q_dx2 = np.gradient(dQ_dx, pix_sep)
+    d2Q_dydx = np.gradient(dQ_dx, pix_sep, axis = axis_y)
+    d2Q_dx2 = np.gradient(dQ_dx, pix_sep, axis = axis_x)
     
     # Calculate the derivative of dU_dy with respect to y and x, thus
     # calculating d2U_dy2 and d2U_dxdy
-    d2U_dy2, d2U_dxdy = np.gradient(dU_dy, pix_sep)
+    d2U_dy2 = np.gradient(dU_dy, pix_sep, axis = axis_y)
+    d2U_dxdy = np.gradient(dU_dy, pix_sep, axis = axis_x)
     
     # Calculate the derivative of dU_dx with respect to y and x, thus
     # calculating d2U_dydx and d2U_dx2
-    d2U_dydx, d2U_dx2 = np.gradient(dU_dx, pix_sep)
+    d2U_dydx = np.gradient(dU_dx, pix_sep, axis = axis_y)
+    d2U_dx2 = np.gradient(dU_dx, pix_sep, axis = axis_x)
     
     # Return all of the calculated second derivatives of Stokes Q and U
     return d2Q_dy2, d2Q_dydx, d2Q_dx2, d2U_dy2, d2U_dydx, d2U_dx2

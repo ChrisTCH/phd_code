@@ -19,13 +19,13 @@ import matplotlib.pyplot as plt
 import aplpy
 
 # Create a string object which stores the directory of the CGPS data
-data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
+data_loc = '/Volumes/CAH_ExtHD/CGPS_2015/'
 
 # Create a string that will be used to save the figure
-filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig1.eps'
+filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig1.png'
 
 # Set the dpi at which to save the image
-save_dpi = 300
+save_dpi = 100
 
 # Set the convention for cartesian co-ordinates used for the CGPS
 convention = 'wells'
@@ -371,7 +371,7 @@ plt.figtext(0.00, 0.55, 'Galactic Latitude', ha = 'left', \
 #-------------------------------------------------------------------------------
 
 # Save the image using the given filename
-fig.savefig(filename, dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig.savefig(filename, dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig)

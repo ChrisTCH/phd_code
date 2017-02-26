@@ -19,13 +19,13 @@ import matplotlib.pyplot as plt
 import aplpy
 
 # Create a string object which stores the directory of the CGPS data
-data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
+data_loc = '/Volumes/CAH_ExtHD/CGPS_2015/'
 
 # Create a string that will be used to save the figure
-filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig4.eps'
+filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig9.png'
 
 # Set the dpi at which to save the image
-save_dpi = 300
+save_dpi = 100
 
 # Set the convention for cartesian co-ordinates used for the CGPS
 convention = 'wells'
@@ -75,7 +75,7 @@ fig = plt.figure(figsize=(9,9), dpi=save_dpi)
 # Add an image of the polarisation gradient at 150 arcsecond resolution to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
 # Need a 10 percent margin on each side of the figure
-fig1 = aplpy.FITSFigure(cgps_gradP_150_fits, figure=fig, subplot=[0.1,0.1,0.4,0.8],\
+fig1 = aplpy.FITSFigure(cgps_gradP_150_fits, figure=fig, subplot=[0.55,0.1,0.4,0.8],\
  convention = convention)
 
 # Change the figure so that the edges of the high latitude extension are 
@@ -108,19 +108,21 @@ fig1.colorbar.set_font(size='small')
 
 # Lower the size of the y-axis ticks, and hide the y axis label
 fig1.hide_yaxis_label()
-fig1.tick_labels.set_yformat('ddd.d')
+fig1.hide_ytick_labels()
 fig1.tick_labels.set_font(size='small')
+fig1.ticks.set_yspacing(2.5)
 
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.tick_labels.set_xformat('ddd.d')
+fig1.ticks.set_xspacing(2.5)
 
 #------------------------------ Total Intensity --------------------------------
 
 # Add an image of the total intensity to the figure
 # The subplot argument gives (xmin,ymin,dx,dy), for placement of the subplot
 # Need a 10 percent margin on each side of the figure
-fig2 = aplpy.FITSFigure(cgps_I_fits, figure=fig, subplot=[0.55,0.1,0.4,0.8],\
+fig2 = aplpy.FITSFigure(cgps_I_fits, figure=fig, subplot=[0.1,0.1,0.4,0.8],\
  convention = convention)
 
 # Change the figure so that the edges of the high latitude extension are 
@@ -153,12 +155,14 @@ fig2.colorbar.set_font(size='small')
 
 # Hide the y axis label and ticks for this figure
 fig2.hide_yaxis_label()
-fig2.hide_ytick_labels()
+fig2.tick_labels.set_yformat('ddd.d')
 fig2.tick_labels.set_font(size='small')
+fig2.ticks.set_yspacing(2.5)
 
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig2.hide_xaxis_label()
 fig2.tick_labels.set_xformat('ddd.d')
+fig2.ticks.set_xspacing(2.5)
 
 #-------------------------------------------------------------------------------
 
@@ -173,7 +177,7 @@ plt.figtext(0.005, 0.5, 'Galactic Latitude', ha = 'left', \
 #-------------------------------------------------------------------------------
 
 # Save the image using the given filename
-fig.savefig(filename, dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig.savefig(filename, dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig)

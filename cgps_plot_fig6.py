@@ -22,16 +22,16 @@ import aplpy
 data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
 
 # Create a string that will be used to save the figure
-filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig6.eps'
+filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig11.png'
 
 # Set the dpi at which to save the image
-save_dpi = 300
+save_dpi = 100
 
 # Set the convention for cartesian co-ordinates used for the CGPS
 convention = 'wells'
 
 # Set the colour scale to use with the images
-colour = 'viridis'
+colour = 'cubehelix'
 
 # Set the intensity scaling to use with the images
 stretch = 'linear'
@@ -102,10 +102,12 @@ fig1.colorbar.set_font(size='small')
 fig1.hide_yaxis_label()
 fig1.tick_labels.set_yformat('ddd.d')
 fig1.tick_labels.set_font(size='small')
+fig1.ticks.set_yspacing(2.5)
 
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig1.hide_xaxis_label()
 fig1.tick_labels.set_xformat('ddd.d')
+fig1.ticks.set_xspacing(2.5)
 
 #------------------------------ With Truncation ----------------------------------
 
@@ -148,10 +150,12 @@ fig2.colorbar.set_font(size='small')
 fig2.hide_yaxis_label()
 fig2.hide_ytick_labels()
 fig2.tick_labels.set_font(size='small')
+fig2.ticks.set_yspacing(2.5)
 
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig2.hide_xaxis_label()
 fig2.tick_labels.set_xformat('ddd.d')
+fig2.ticks.set_xspacing(2.5)
 
 #-------------------------------------------------------------------------------
 
@@ -166,7 +170,7 @@ plt.figtext(0.005, 0.5, 'Galactic Latitude', ha = 'left', \
 #-------------------------------------------------------------------------------
 
 # Save the image using the given filename
-fig.savefig(filename, dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig.savefig(filename, dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig)

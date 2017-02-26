@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import aplpy
 
 # Create a string object which stores the directory of the synchrotron data
-data_loc = '/Users/chrisherron/Documents/PhD/CFed_2016/'
+data_loc = '/Volumes/CAH_ExtHD/CFed_2016/'
 
 # Create a string that will be used to save the figure
 filename = '/Users/chrisherron/Documents/PhD/CFed_2016/Publication_Plots/fig1.eps'
@@ -31,7 +31,7 @@ timestep = 20
 gamma = 2.0
 
 # Set the dpi at which to save the image
-save_dpi = 300
+save_dpi = 150
 
 # Set the colour scale to use with the images
 colour = 'viridis'

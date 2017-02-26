@@ -22,16 +22,16 @@ import aplpy
 data_loc = '/Users/chrisherron/Documents/PhD/CGPS_2015/'
 
 # Create a string that will be used to save the figure
-filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig8.eps'
+filename = '/Users/chrisherron/Documents/PhD/My_Papers/CGPS_Polar_Grad/fig12.png'
 
 # Set the dpi at which to save the image
-save_dpi = 300
+save_dpi = 100
 
 # Set the convention for cartesian co-ordinates used for the CGPS
 convention = 'wells'
 
 # Set the colour scale to use with the images
-colour = 'viridis'
+colour = 'cubehelix'
 
 # Set the intensity scaling to use with the images
 stretch = 'linear'
@@ -124,10 +124,12 @@ fig1.colorbar.set_font(size='small')
 fig1.hide_yaxis_label()
 fig1.tick_labels.set_yformat('ddd.d')
 fig1.tick_labels.set_font(size='small')
+fig1.ticks.set_yspacing(2.5)
 
 # Hide the x axis label and ticks for this figure
 fig1.hide_xaxis_label()
 fig1.hide_xtick_labels()
+fig1.ticks.set_xspacing(2.5)
 
 # Add a label to show the resolution of the panel
 fig1.add_label(0.5, 1.05, '(a) 75\"', relative=True)
@@ -174,10 +176,12 @@ fig2.colorbar.set_font(size='small')
 # Hide the y axis label and ticks for this figure
 fig2.hide_yaxis_label()
 fig2.hide_ytick_labels()
+fig2.ticks.set_yspacing(2.5)
 
 # Hide the x axis label and ticks for this figure
 fig2.hide_xaxis_label()
 fig2.hide_xtick_labels()
+fig2.ticks.set_xspacing(2.5)
 
 # Add a label to show the resolution of the panel
 fig2.add_label(0.5, 1.05, '(b) 105\" ', relative=True)
@@ -225,10 +229,12 @@ fig3.colorbar.set_font(size='small')
 fig3.hide_yaxis_label()
 fig3.tick_labels.set_yformat('ddd.d')
 fig3.tick_labels.set_font(size='small')
+fig3.ticks.set_yspacing(2.5)
 
 # Hide the x axis label and ticks for this figure
 fig3.hide_xaxis_label()
 fig3.hide_xtick_labels()
+fig3.ticks.set_xspacing(2.5)
 
 # Add a label to show the resolution of the panel
 fig3.add_label(0.5, 1.05, '(c) 150\" ', relative=True)
@@ -275,10 +281,12 @@ fig4.colorbar.set_font(size='small')
 # Hide the y axis label and ticks for this figure
 fig4.hide_yaxis_label()
 fig4.hide_ytick_labels()
+fig4.ticks.set_yspacing(2.5)
 
 # Hide the x axis label and ticks for this figure
 fig4.hide_xaxis_label()
 fig4.hide_xtick_labels()
+fig4.ticks.set_xspacing(2.5)
 
 # Add a label to show the resolution of the panel
 fig4.add_label(0.5, 1.05, '(d) 240\" ', relative=True)
@@ -326,10 +334,12 @@ fig5.colorbar.set_font(size='small')
 fig5.hide_yaxis_label()
 fig5.tick_labels.set_yformat('ddd.d')
 fig5.tick_labels.set_font(size='small')
+fig5.ticks.set_yspacing(2.5)
 
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig5.hide_xaxis_label()
 fig5.tick_labels.set_xformat('ddd.d')
+fig5.ticks.set_xspacing(2.5)
 
 # Add a label to show the resolution of the panel
 fig5.add_label(0.5, 1.05, '(e) 480\" ', relative=True)
@@ -376,11 +386,13 @@ fig6.colorbar.set_font(size='small')
 # Hide the y axis label and ticks for this figure
 fig6.hide_yaxis_label()
 fig6.hide_ytick_labels()
+fig6.ticks.set_yspacing(2.5)
 
 # Lower the size of the x-axis ticks, and hide the x axis label
 fig6.hide_xaxis_label()
 fig6.tick_labels.set_xformat('ddd.d')
 fig6.tick_labels.set_font(size='small')
+fig6.ticks.set_xspacing(2.5)
 
 # Add a label to show the resolution of the panel
 fig6.add_label(0.5, 1.05, '(f) 1200\" ', relative=True)
@@ -398,7 +410,7 @@ plt.figtext(0.005, 0.55, 'Galactic Latitude', ha = 'left', \
 #-------------------------------------------------------------------------------
 
 # Save the image using the given filename
-fig.savefig(filename, dpi = save_dpi, format = 'eps', bbox_inches='tight')
+fig.savefig(filename, dpi = save_dpi, format = 'png', bbox_inches='tight')
 
 # Close all of the figures
 plt.close(fig)

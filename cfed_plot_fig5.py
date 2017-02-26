@@ -101,7 +101,10 @@ log = True
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use for Christoph's simulations 
-simul_loc_CF = '/Users/chrisherron/Documents/PhD/CFed_2016/'
+simul_loc_CF = '/Volumes/CAH_ExtHD/CFed_2016/'
+
+# Create a string for the directory in which the plots should be saved
+save_loc = '/Users/chrisherron/Documents/PhD/CFed_2016/'
 
 # Create a string for the specific simulated data sets to use in calculations
 spec_locs_CF = ['512sM5Bs5886_20/', '512sM5Bs5886_25/', '512sM5Bs5886_30/',\
@@ -383,7 +386,7 @@ plt.errorbar(sonic_mach_arr[16:], mean_mean_arr[16:], ms = 7,ecolor='g', mfc = '
 plt.errorbar(sonic_mach_CF, mean_timeavg_arr_CF, ms=7, ecolor='m', mfc = 'm', fmt='s', yerr=mean_err_arr_CF)
 
 # Add a label to the y-axis
-plt.ylabel('Mean', fontsize = 20)
+plt.ylabel(r'Mean $\mu_{\mathcal{I}}$', fontsize = 16)
 
 # Make the x axis tick labels invisible
 plt.setp( ax1.get_xticklabels(), visible=False)
@@ -420,7 +423,7 @@ plt.errorbar(sonic_mach_CF, stdev_timeavg_arr_CF, ms=7, ecolor='m', mfc = 'm', f
 plt.xlabel('Sonic Mach Number', fontsize = 20)
 
 # Add a label to the y-axis
-plt.ylabel('Standard Deviation', fontsize = 20)
+plt.ylabel(r'Standard Deviation $\sigma_{\mathcal{I}}$', fontsize = 16)
 
 # Create an axis for the fourth subplot to be produced, which is for
 # standard deviation as a function of Alfvenic Mach number. Make the x axis 
@@ -453,7 +456,7 @@ plt.setp( ax4.get_yticklabels(), visible=False)
 # plt.figtext(0.57, 0.485, 'd)', fontsize = 18)
 
 # Save the figure using the given filename and format
-plt.savefig(simul_loc_CF + 'Publication_Plots/fig5.eps', dpi = save_dpi, format = 'eps')
+plt.savefig(save_loc + 'Publication_Plots/fig5.eps', dpi = save_dpi, format = 'eps')
 
 # Close the figure so that it does not stay in memory
 plt.close()

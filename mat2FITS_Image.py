@@ -16,7 +16,7 @@ from astropy.io import fits
 
 # Define the function mat2FITS_Image, which will convert the given numpy array
 # into a FITS image object.
-def mat2FITS_Image(array, hdr = None, filename = None):
+def mat2FITS_Image(array, hdr = None, filename = None, clobber = False):
     '''
     Description
         This function converts a given numpy array into a FITS image object. If
@@ -32,6 +32,8 @@ def mat2FITS_Image(array, hdr = None, filename = None):
               file will not have any information in its header.
         filename - The filename to be used if the FITS file is to be saved. If
                    this is None, then the FITS file is not saved.
+        clobber - A boolean value. If False, it will not overwrite a FITS file 
+                  that has the same name. If True, it will overwrite.
                    
     Output
         fits_file - The produced FITS image object, which will have a primary
@@ -56,7 +58,7 @@ def mat2FITS_Image(array, hdr = None, filename = None):
     # If a filename was provided, then save the FITS file
     if filename is not None:
         # Save the created FITS image object using the given filename
-        fits_file.writeto(filename)
+        fits_file.writeto(filename, clobber = clobber)
     
     # Return the created FITS image object to the caller
     return fits_file

@@ -26,7 +26,8 @@ from hist_plot import hist_plot
 # Define the function that can be imported by a calling code to calculate
 # local statistics at pixels distributed on a grid throughout the input image,
 # and then save the resultant map as a FITS file
-def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
+def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths,\
+	all_fits_info = True):
 	'''
 	Description
         This function calculates local statistics for some pixels in an image,
@@ -34,7 +35,7 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
         surrounding pixels. The selected pixels will be located on a rectangular
         grid, and the spacing between the pixels is determined by the size of 
         the box used to calculate statistics, so that the input map is
-        sampled as a rate greater than te Nyquist frequency. The statistics that
+        sampled as a rate greater than the Nyquist frequency. The statistics that
         are calculated can be specified in the stat_list variable. All of these 
         statistics will be calculated for each input image. Multiple input files
         can be provided, and statistics will be calculated for each image. Maps 
@@ -64,6 +65,10 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
         				 array must have the same length as input_files. Pixels 
         				 selected for the evaluation of statistics are separated
         				 by half of the box half-width.
+        all_fits_info - A boolean value, if True, then all CDELT and CRPIX 
+        				header info is present in the simulations, and will be 
+        				used in the code. If False, then placeholder information
+        				will be used.
                    
     Output
         0 - An error occurred, possibly due to inappropriate input values
@@ -136,20 +141,32 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 		# extracted
 		print 'CGPS data successfully extracted from the FITS file.'
 
-		# Extract the size of each pixel from the header. This is the length of 
-		# each side of the pixel (assumed to be square), in degrees. 
-		pix_size_deg = fits_hdr['CDELT2']
-
 		# Extract the number of pixels along the horizontal axis of the image
 		num_pix_horiz = fits_hdr['NAXIS1']
 
 		# Extract the number of pixels along the vertical axis of the image
 		num_pix_vert = fits_hdr['NAXIS2']
 
-		# Calculate where the reference pixel is relative to the top left
-		# hand corner of the image
-		horiz_centre_loc = np.absolute(fits_hdr['CDELT1'] * fits_hdr['CRPIX1'])
-		vert_centre_loc = np.absolute(fits_hdr['CDELT2'] * fits_hdr['CRPIX2'])
+		# If all header information is present, use the information there
+		if all_fits_info == True:
+			# Extract the size of each pixel from the header. This is the length of 
+			# each side of the pixel (assumed to be square), in degrees. 
+			pix_size_deg = fits_hdr['CDELT2']
+
+			# Calculate where the reference pixel is relative to the top left
+			# hand corner of the image
+			horiz_centre_loc = np.absolute(fits_hdr['CDELT1'] * fits_hdr['CRPIX1'])
+			vert_centre_loc = np.absolute(fits_hdr['CDELT2'] * fits_hdr['CRPIX2'])
+		elif all_fits_info == False:
+			# If all header information is not present, use placeholder information
+
+			# Set the size of each pixel from the header, which is just 1
+			pix_size_deg = 1.0
+
+			# Calculate where the reference pixel is relative to the top left
+			# hand corner of the image
+			horiz_centre_loc = np.absolute(pix_size_deg * num_pix_horiz/2.0)
+			vert_centre_loc = np.absolute(pix_size_deg * num_pix_vert/2.0)
 
 		# Create a new header object, that will become the header for the 
 		# statistics map that is produced
@@ -186,15 +203,29 @@ def calc_sparse_stats(input_files, output_filenames, stat_list, box_halfwidths):
 		stats_hdr['NAXIS1'] = num_grid_horiz
 		stats_hdr['NAXIS2'] = num_grid_vert
 
-		# Change the CDELT keywords, that specify the spacing between pixels
-		# in degrees
-		stats_hdr['CDELT1'] = stats_hdr['CDELT1'] * grid_space
-		stats_hdr['CDELT2'] = stats_hdr['CDELT2'] * grid_space
+		# If all header information is present, use the information there
+		if all_fits_info == True:
+			# Change the CDELT keywords, that specify the spacing between pixels
+			# in degrees
+			stats_hdr['CDELT1'] = stats_hdr['CDELT1'] * grid_space
+			stats_hdr['CDELT2'] = stats_hdr['CDELT2'] * grid_space
 
-		# Change the CRPIX keywords, that specify which pixel is the reference
-		# pixel in the image
-		stats_hdr['CRPIX1'] = np.absolute(horiz_centre_loc / stats_hdr['CDELT1']) + 1
-		stats_hdr['CRPIX2'] = np.absolute(vert_centre_loc / stats_hdr['CDELT2'])
+			# Change the CRPIX keywords, that specify which pixel is the reference
+			# pixel in the image
+			stats_hdr['CRPIX1'] = np.absolute(horiz_centre_loc / stats_hdr['CDELT1']) + 1
+			stats_hdr['CRPIX2'] = np.absolute(vert_centre_loc / stats_hdr['CDELT2'])
+		elif all_fits_info == False:
+			# If all header information is not present, use placeholder information
+
+			# Change the CDELT keywords, that specify the spacing between pixels
+			# in degrees
+			stats_hdr['CDELT1'] = pix_size_deg * grid_space
+			stats_hdr['CDELT2'] = pix_size_deg * grid_space
+
+			# Change the CRPIX keywords, that specify which pixel is the reference
+			# pixel in the image
+			stats_hdr['CRPIX1'] = np.absolute(horiz_centre_loc / stats_hdr['CDELT1']) + 1
+			stats_hdr['CRPIX2'] = np.absolute(vert_centre_loc / stats_hdr['CDELT2'])
 
 		# Create a dictionary that will hold the arrays corresponding to each 
 		# statistic

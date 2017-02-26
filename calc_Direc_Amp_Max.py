@@ -2,12 +2,12 @@
 #                                                                             #
 # This piece of code describes a function which receives arrays of the first  #
 # order partial derivatives of Stokes Q and U with respect to the x and y     #
-# axes, as well as Stokes Q and U, and calculates the amplitude of the        #
-# directional derivative of the complex polarisation vector. This amplitude   #
-# is the maximum absolute value of the tangential component over a range of   #
-# angles theta with respect to the horizontal axis of the image. This         #
-# produces an image of the amplitude of the directional derivative. The       #
-# formula is given on page 45 of PhD Logbook 5.                               #
+# axes, and calculates the amplitude of the directional derivative of the     #
+# complex polarisation vector. This amplitude is the maximum absolute value   #
+# of the tangential component over a range of angles theta with respect to    #
+# the horizontal axis of the image. This produces an image of the amplitude   #
+# of the directional derivative. The formula is given on page 45 of PhD       #
+# Logbook 5.                                                                  #
 #                                                                             #
 # Author: Chris Herron                                                        #
 # Email: cher7851@uni.sydney.edu.au                                           #
@@ -24,8 +24,7 @@ import numpy as np
 # the directional derivative of the complex polarisation vector. This amplitude
 # is the maximum absolute value of the directional derivative over a range of
 # angles theta with respect to the horizontal axis of the image.
-def calc_Direc_Amp_Max(Q = None, U = None, dQ_dy = None, dQ_dx = None,\
-dU_dy = None, dU_dx = None):
+def calc_Direc_Amp_Max(dQ_dy = None, dQ_dx = None, dU_dy = None, dU_dx = None):
     '''
     Description
         This function calculates the amplitude of the directional derivative of
@@ -37,8 +36,6 @@ dU_dy = None, dU_dx = None):
         formula is given on page 45 of PhD Logbook 5.
         
     Required Input
-        Q, U - Stokes Q and Stokes U respectively. Must be Numpy arrays of the
-               same size, where each entry of the array is a float.
         dQ_dy, dQ_dx - Partial derivatives of Stokes Q with respect to the
                        vertical and horizontal axes of the image respectively.
         dU_dy, dU_dx - Partial derivatives of Stokes U with respect to the

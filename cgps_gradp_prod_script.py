@@ -136,8 +136,8 @@ for i in range(len(simul_arr)):
 	# Create a variable that specifies the velocity scaling in m s^-1
 	v_0 = 10.15 * np.power(10.0,3.0) / np.sqrt(press_arr[i])
 
-	# Calculate the magnetic field scaling for this simulation
-	B_0 = np.sqrt(mu_0 * rho_0 * np.power(v_0,2.0))
+	# Calculate the magnetic field scaling for this simulation in micro Gauss
+	B_0 = np.sqrt(mu_0 * rho_0 * np.power(v_0,2.0)) / np.power(10.0,-10.0)
 
 	# Scale the magnetic field to physical units of micro Gauss
 	mag_data = B_0 * mag_data
@@ -180,11 +180,11 @@ for i in range(len(simul_arr)):
 
 	# Save the produced rotation measure map as a FITS file
 	mat2FITS_Image(RM_image, pri_hdu_RM.header, data_loc + 'rot_meas_' +\
-	 line_o_sight + '.fits')
+	 line_o_sight + '.fits', clobber = True)
 
 	# Save the produced polarisation gradient map as a FITS file
 	mat2FITS_Image(gradP, pri_hdu_gradP.header, data_loc + 'polar_grad_' +\
-	 line_o_sight + '.fits')
+	 line_o_sight + '.fits', clobber = True)
 
 	# Close all of the fits files, to save memory
 	mag_fits.close()

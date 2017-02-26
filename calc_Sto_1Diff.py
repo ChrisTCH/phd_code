@@ -29,10 +29,12 @@ def calc_Sto_1Diff(Stokes_Q, Stokes_U, pix_sep = 1.0):
     Required Input
         Stokes_Q - A Numpy array containing the value of Stokes Q at each
                    pixel of the image. The array must conform to the 
-                   convention that the first dimension represents the y-axis,
-                   and the second dimension represents the x-axis, so that
+                   convention that the second last dimension represents the 
+                   y-axis, and the last dimension represents the x-axis, so that
                    each entry of the array represents a fixed y-value, and 
                    contains an array giving the Stokes Q value at each x-value.
+                   For a 2D array, the dimensions should be ordered as (y,x),
+                   and for a 3D array (-,y,x).
         Stokes_U - A Numpy array containing the value of Stokes U at each
                    pixel of the image. Must have the same size as the Stokes
                    Q array. Must satisfy the same conventions as the Stokes Q
@@ -52,6 +54,15 @@ def calc_Sto_1Diff(Stokes_Q, Stokes_U, pix_sep = 1.0):
                        These arrays have the same size as the Stokes U array.
     '''
     
+    # Calculate the number of dimensions in the given arrays
+    num_dim = len(np.shape(Stokes_Q))
+
+    # Depending on the number of dimensions, set parameters that control the
+    # axes that we differentiate across. These values represent the index
+    # for the correct axes
+    axis_y = num_dim - 2
+    axis_x = num_dim - 1
+
     # To calculate the derivatives of Stokes Q and U along the x and y axes,
     # the gradient function of numpy is used.
     # Numpy performs the calculation by using central differences in the 
@@ -63,10 +74,12 @@ def calc_Sto_1Diff(Stokes_Q, Stokes_U, pix_sep = 1.0):
     # Calculate the partial derivatives of Stokes Q along the y and x axes.
     # pix_sep is used to make sure that the returned matrices have the correct
     # units.
-    dQ_dy, dQ_dx = np.gradient(Stokes_Q, pix_sep)
+    dQ_dy = np.gradient(Stokes_Q, pix_sep, axis = axis_y)
+    dQ_dx = np.gradient(Stokes_Q, pix_sep, axis = axis_x)
     
     # Calculate the partial derivatives of Stokes U along the y and x axes
-    dU_dy, dU_dx = np.gradient(Stokes_U, pix_sep)
+    dU_dy = np.gradient(Stokes_U, pix_sep, axis = axis_y)
+    dU_dx = np.gradient(Stokes_U, pix_sep, axis = axis_x)
     
     # Return the calculated partial derivatives to the caller.
     return dQ_dy, dQ_dx, dU_dy, dU_dx 

@@ -53,16 +53,50 @@ dU_dy = None, dU_dx = None):
     '''
     
     # Calculate the numerator needed to calculate the angle that maximises the
-    # tangential component of the directional derivative
-    numer = Q*dU_dy - U*dQ_dy
+    # tangential component of the directional derivative, using the sin formula
+    numer_sin = Q*dU_dy - U*dQ_dy
+
+    # Calculate the numerator needed to calculate the angle that maximises the
+    # tangential component of the directional derivative, using the cos formula
+    numer_cos = Q*dU_dx - U*dQ_dx
 
     # Calculate the denominator needed to calculate the angle that maximises the
     # tangential component of the directional derivative
-    denom = Q*dU_dx - U*dQ_dx
+    denom = np.sqrt(np.power(numer_cos,2.0) + np.power(numer_sin,2.0))
+
+    # Calculate the angle for which the tangential component is maximised, at 
+    # each pixel, using inverse sin. In radians, between +/- pi/2.
+    theta_sin = np.arcsin(numer_sin/denom)
+
+    # Calculate the angle for which the tangential component is maximised, at 
+    # each pixel, using inverse cos. In radians, between 0 and pi.
+    theta_cos = np.arccos(numer_cos/denom)
+
+    # Find the entries in the array where the angle returned by inverse cos
+    # is more than pi/2, as in this case the value for the angle lies
+    # in the second or third quadrant, so we need to adjust the angle that
+    # is measured by inverse sin
+    theta_cos_entries = theta_cos > np.pi/2.0
+
+    # Find the entries of the array where the measured angle was in the first
+    # quadrant, but it is supposed to be in the second quadrant
+    second_quad = np.logical_and(theta_cos_entries, theta_sin >= 0)
+
+    # Find the entries of the array where the measured angle was in the fourth
+    # quadrant, but it is supposed to be in the third quadrant
+    third_quad = np.logical_and(theta_cos_entries, theta_sin < 0)
+
+    # For entries that are supposed to be in the second quadrant, adjust the
+    # value of the measured angle
+    theta_sin[second_quad] = np.pi - theta_sin[second_quad]
+
+    # For entries that are supposed to be in the third quadrant, adjust the
+    # value of the measured angle
+    theta_sin[third_quad] = -1.0 * np.pi - theta_sin[third_quad]
 
     # Calculate the angle for which the tangential component of the directional
     # derivative is maximised, at each pixel
-    tang_comp_ang = np.rad2deg(np.arctan2(numer,denom))
+    tang_comp_ang = np.rad2deg(theta_sin)
     
     # Return the angle that maximises the tangential component of the 
     # directional derivative to the caller

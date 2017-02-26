@@ -41,7 +41,10 @@ log = True
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/CFed_2016/'
+simul_loc = '/Volumes/CAH_ExtHD/CFed_2016/'
+
+# Create a string for the directory in which the plots should be saved
+save_loc = '/Users/chrisherron/Documents/PhD/CFed_2016/'
 
 # Create a string for the specific simulated data sets to use in calculations.
 # The directories end in:
@@ -263,6 +266,18 @@ print "StDev par:", stdev_fit_par
 # Create an array of symbols to use for the following plots
 sym_list = ['-o','-^','-s']
 
+# To plot lines of best fit, create an array of zeta values at which we'll
+# evaluate the line
+zeta_line = np.array([0.0,0.5])
+
+# Calculate the values of the mean for the line of best fit
+mu_para = 0.0988669*zeta_line - 0.07072422
+mu_perp = 0.2247482*zeta_line - 0.15684762
+
+# Calculate the values of the standard deviation for the line of best fit
+sigma_para = -0.19031017*zeta_line + 0.23699793
+sigma_perp = -0.33508008*zeta_line + 0.37095793
+
 # ---------------------------- Plots of the moments ----------------------------
 
 # Here we want to produce one plot with four subplots. There should be two rows
@@ -283,6 +298,13 @@ for i in range(len(line_o_sight)):
 	plt.errorbar(zeta, mean_timeavg_arr[:,i], yerr = mean_err_arr[:,i],\
 	 fmt=sym_list[i])
 
+# Plot lines of best fit for the mean as a function of zeta
+plt.plot(zeta_line,mu_para,'k--', linewidth = 2)
+plt.plot(zeta_line,mu_perp,'k-.', linewidth = 3)
+
+# Add a label to the y-axis of the axis
+plt.ylabel(r'$\mu_{\mathcal{I}}$', fontsize = 20)
+
 # Change the limits of the x axis
 plt.xlim([np.amin(zeta)-0.1, np.amax(zeta)+0.1])
 
@@ -299,6 +321,13 @@ for i in range(len(line_o_sight)):
 	# line of sight
 	plt.errorbar(zeta, stdev_timeavg_arr[:,i], yerr = stdev_err_arr[:,i],\
 	 fmt=sym_list[i], label = '{}-LOS'.format(line_o_sight[i]))
+
+# Plot lines of best fit for the standard deviation as a function of zeta
+plt.plot(zeta_line,sigma_para,'k--', linewidth = 2)
+plt.plot(zeta_line,sigma_perp,'k-.', linewidth = 3)
+
+# Add a label to the y-axis of the axis
+plt.ylabel(r'$\sigma_{\mathcal{I}}$', fontsize = 20)
 
 # Force the legends to appear on the plot
 plt.legend(loc = 1, fontsize = 10, numpoints=1)
@@ -319,6 +348,9 @@ for i in range(len(line_o_sight)):
 	plt.errorbar(zeta, skew_timeavg_arr[:,i], yerr = skew_err_arr[:,i],\
 	 fmt=sym_list[i])
 
+# Add a label to the y-axis of the axis
+plt.ylabel(r'$\gamma_{\mathcal{I}}$', fontsize = 20)
+
 # Change the limits of the x axis
 plt.xlim([np.amin(zeta)-0.1, np.amax(zeta)+0.1])
 
@@ -333,6 +365,9 @@ for i in range(len(line_o_sight)):
 	plt.errorbar(zeta, kurt_timeavg_arr[:,i], yerr = kurt_err_arr[:,i],\
 	 fmt=sym_list[i])
 
+# Add a label to the y-axis of the axis
+plt.ylabel(r'$\beta_{\mathcal{I}}$', fontsize = 20)
+
 # Change the limits of the x axis
 plt.xlim([np.amin(zeta)-0.1, np.amax(zeta)+0.1])
 
@@ -341,19 +376,22 @@ plt.figtext(0.5, 0.0, r'Turbulent Driving Parameter $\zeta$', ha = 'center', \
 	va = 'bottom', fontsize = 20)
 
 # Add some text to the figure, to label the left plot as figure a
-plt.figtext(0.23, 0.94, 'a) Mean', fontsize = 18)
+plt.figtext(0.23, 0.94, r'a) Mean $\mu_{\mathcal{I}}$', fontsize = 18)
 
 # Add some text to the figure, to label the left plot as figure b
-plt.figtext(0.57, 0.94, 'b) Standard Deviation', fontsize = 18)
+plt.figtext(0.56, 0.94, r'b) Standard Deviation $\sigma_{\mathcal{I}}$', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure c
-plt.figtext(0.20, 0.48, 'c) Skewness', fontsize = 18)
+plt.figtext(0.20, 0.48, r'c) Skewness $\gamma_{\mathcal{I}}$', fontsize = 18)
 
 # Add some text to the figure, to label the right plot as figure d
-plt.figtext(0.64, 0.48, 'd) Kurtosis', fontsize = 18)
+plt.figtext(0.64, 0.48, r'd) Kurtosis $\beta_{\mathcal{I}}$', fontsize = 18)
+
+# Adjust the padding on the left and right of the plots to prevent overlap
+fig.subplots_adjust(wspace = 0.3)
 
 # Save the figure using the given filename and format
-plt.savefig(simul_loc + 'Publication_Plots/fig3.eps', dpi = save_dpi, format = 'eps')
+plt.savefig(save_loc + 'Publication_Plots/fig3.eps', dpi = save_dpi, format = 'eps')
 
 # Close the figure so that it does not stay in memory
 plt.close()

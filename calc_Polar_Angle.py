@@ -36,9 +36,9 @@ def calc_Polar_Angle(Sto_Q, Sto_U):
                    
     Output
         polar_angle - A Numpy array containing the value of the observed
-                     polarisation angle at each point. This array has the 
-                     same size as the Stokes arrays. The polarisation is 
-                     measured counter-clockwise from the vertical direction.
+                polarisation angle at each point. This array has the same size 
+                as the Stokes arrays. The polarisation is measured 
+                counter-clockwise from the vertical direction, in degrees.
     '''
     
     # Calculate the observed polarisation angle (in radians)

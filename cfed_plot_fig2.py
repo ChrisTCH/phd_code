@@ -43,7 +43,7 @@ else:
 
 # Create a string for the directory that contains the simulated magnetic fields
 # and synchrotron intensity maps to use. 
-simul_loc = '/Users/chrisherron/Documents/PhD/CFed_2016/'
+simul_loc = '/Volumes/CAH_ExtHD/CFed_2016/'
 
 # Create a string for the specific simulated data sets to use in calculations.
 # The directories end in:
@@ -323,7 +323,7 @@ plt.figtext(0.5, 0.0, r'$\mathcal{I} = \log_{10} \left( \frac{I}{<I>} \right)$',
  ha = 'center',	va = 'bottom', fontsize = 20)
 
 # Save the figure using the given filename and format
-plt.savefig(simul_loc + 'Publication_Plots/fig2.png', dpi = save_dpi, format = 'png')
+plt.savefig('/Users/chrisherron/Documents/PhD/CFed_2016/' + 'Publication_Plots/fig2.pdf', dpi = save_dpi, format = 'pdf')
 
 # Close the figure so that it does not stay in memory
 plt.close()
